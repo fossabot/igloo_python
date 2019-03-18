@@ -1,22 +1,19 @@
-import asyncio
-import igloo
+from igloo import User, Client
 
-client = igloo.Client(username="andrea@igloo.ooo",
-                      password="sleeping polar bear")
+client = Client(token="")
 
+user = User(client)
+user.name = "Andrea"
 
-async def listen():
-    counter = 0
-    async for data in client.subscribe("subscription{ environmentCreated{ id }}"):
-        print(data)
-        counter = counter + 1
-        if counter > 3:
-            return
+print("Here are the first 3 environments of user "+user.name)
+for environment in user.environments[:3]:
+    print("- {} ({})".format(environment.name, len(environment.devices)))
+    for device in environment.devices:
+        print("  - {}".format(device.name))
 
-asyncio.get_event_loop().run_until_complete(listen())
-
-# creates an environment
-mutationRes = client.mutation(
-    'mutation{ createEnvironment(name:"AAAAAAA"){id}}')
-
-print(mutationRes)
+# OUTPUT:
+# Here are the first 3 environments of user Andrea
+# - A (0)
+# - A (1)
+#   - Claimed device
+# - A (0)

@@ -4,35 +4,37 @@ import pathlib
 import ssl
 import websockets
 import json
+from models.user import User
+from models.environment import Environment
+from models.device import Device
+url = "https://iglooql.herokuapp.com/graphql"
 
-url = "https://igloo-production.herokuapp.com/graphql"
+
+class GraphQLException(Exception):
+    pass
 
 
 class Client:
-    def __init__(self, token="", username="", password="", newUser=False):
-        if token != "":
-            self.token = token
-        elif username != "" and password != "":
-            if newUser:
-                self.token = self.signUp(username, password)
-            else:
-                self.token = self.logIn(username, password)
-        else:
-            raise Exception("No token or username-password provided")
+    def __init__(self, token):
+        self.token = token
 
-    def query(self, query, authenticated=True):
+    def query(self, query, variables=None, authenticated=True):
         payload = {"query": query}
+        if variables != None:
+            payload["variables"] = variables
+
         headers = {
             'content-type': "application/json",
+            'authorization': "Bearer " + self.token
         }
-
-        if authenticated:
-            headers["authorization"] = "Bearer " + self.token
 
         response = requests.request(
             "POST", url, data=json.dumps(payload), headers=headers)
 
         parsedRes = json.loads(response.text)
+        if "errors" in parsedRes.keys():
+            raise GraphQLException(parsedRes["errors"][0]["message"])
+
         return parsedRes["data"]
 
     mutation = query
@@ -53,29 +55,3 @@ class Client:
 
                 if parsedResponse["type"] == "data":
                     yield parsedResponse["payload"]["data"]
-
-    def logIn(self, username, password):
-        query = """
-mutation{
-  logIn(email:"%s",password:"%s") {
-    token
-  }
-}
-""" % (username, password)
-
-        response = self.query(query, authenticated=False)
-
-        return response["logIn"]["token"]
-
-    def signUp(self, username, password):
-        query = """
-mutation{
-  signUp(email:"%s",password:"%s") {
-    token
-  }
-}
-""" % (username, password)
-
-        response = self.query(query, authenticated=False)
-
-        return response["SignupUser"]["token"]
