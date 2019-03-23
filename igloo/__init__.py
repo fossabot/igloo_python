@@ -4,9 +4,11 @@ import pathlib
 import ssl
 import websockets
 import json
-from models.user import User
-from models.environment import Environment
-from models.device import Device
+from .models.user import User
+from .models.environment import Environment
+from .models.device import Device
+from .mutations import MutationRoot
+
 url = "https://iglooql.herokuapp.com/graphql"
 
 
@@ -17,6 +19,14 @@ class GraphQLException(Exception):
 class Client:
     def __init__(self, token):
         self.token = token
+
+    @property
+    def query_root(self):
+        return QueryRoot(self)
+
+    @property
+    def mutation_root(self):
+        return MutationRoot(self)
 
     def query(self, query, variables=None, authenticated=True):
         payload = {"query": query}
@@ -55,3 +65,18 @@ class Client:
 
                 if parsedResponse["type"] == "data":
                     yield parsedResponse["payload"]["data"]
+
+
+class QueryRoot:
+    def __init__(self, client):
+        self.client = client
+
+    @property
+    def user(self):
+        return User(self.client)
+
+    def environment(self, id):
+        return Environment(self.client, id)
+
+    def device(self, id):
+        return Device(self.client, id)

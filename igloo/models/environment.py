@@ -1,4 +1,4 @@
-from models.device import Device
+from .device import Device
 
 
 class Environment:
