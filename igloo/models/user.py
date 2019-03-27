@@ -7,75 +7,88 @@ class User:
 
     @property
     def name(self):
-        res = self.client.query('{user{name}}')
-        return res["user"]["name"]
+        res = self.client.query('{user{name}}', keys=["user", "name"])
+        return res
 
     @name.setter
     def name(self, newName):
-        self.client.mutation('mutation{user(name:"%s"){id}}' % (newName))
+        self.client.mutation(
+            'mutation{user(name:"%s"){id}}' % (newName), blocking=True)
 
     @property
     def profileIconColor(self):
-        res = self.client.query('{user{profileIconColor}}')
-        return res["user"]["profileIconColor"]
+        res = self.client.query('{user{profileIconColor}}',
+                                keys=["user", "profileIconColor"])
+        return res
 
     @property
     def pendingEnvironmentShareCount(self):
-        res = self.client.query('{user{pendingEnvironmentShareCount}}')
-        return res["user"]["pendingEnvironmentShareCount"]
+        res = self.client.query('{user{pendingEnvironmentShareCount}}', keys=[
+                                "user", "pendingEnvironmentShareCount"])
+        return res
 
     @property
     def pendingOwnerChangeCount(self):
-        res = self.client.query('{user{pendingOwnerChangeCount}}')
-        return res["user"]["pendingOwnerChangeCount"]
+        res = self.client.query('{user{pendingOwnerChangeCount}}', keys=[
+                                "user", "pendingOwnerChangeCount"])
+        return res
 
     @property
     def environmentCount(self):
-        res = self.client.query('{user{environmentCount}}')
-        return res["user"]["environmentCount"]
+        res = self.client.query('{user{environmentCount}}', keys=[
+                                "user", "environmentCount"])
+        return res
 
     @property
     def deviceCount(self):
-        res = self.client.query('{user{deviceCount}}')
-        return res["user"]["deviceCount"]
+        res = self.client.query('{user{deviceCount}}', keys=[
+                                "user", "deviceCount"])
+        return res
 
     @property
     def valueCount(self):
-        res = self.client.query('{user{valueCount}}')
-        return res["user"]["valueCount"]
+        res = self.client.query('{user{valueCount}}', keys=[
+                                "user", "valueCount"])
+        return res
 
     @property
     def notificationCount(self):
-        res = self.client.query('{user{notificationCount}}')
-        return res["user"]["notificationCount"]
+        res = self.client.query('{user{notificationCount}}', keys=[
+                                "user", "notificationCount"])
+        return res
 
     @property
     def permanentTokenCount(self):
-        res = self.client.query('{user{permanentTokenCount}}')
-        return res["user"]["permanentTokenCount"]
+        res = self.client.query('{user{permanentTokenCount}}', keys=[
+                                "user", "permanentTokenCount"])
+        return res
 
     @property
     def quietMode(self):
-        res = self.client.query('{user{quietMode}}')
-        return res["user"]["quietMode"]
+        res = self.client.query('{user{quietMode}}', keys=[
+                                "user", "quietMode"])
+        return res
 
     @quietMode.setter
     def quietMode(self, newMode):
-        self.client.mutation('mutation{user(quietMode:%s){id}}' % (newMode))
+        self.client.mutation(
+            'mutation{user(quietMode:%s){id}}' % (newMode), blocking=True)
 
     @property
     def devMode(self):
-        res = self.client.query('{user{devMode}}')
-        return res["user"]["devMode"]
+        res = self.client.query('{user{devMode}}', keys=["user", "devMode"])
+        return res
 
     @devMode.setter
     def devMode(self, newMode):
-        self.client.mutation('mutation{user(devMode:%s){id}}' % (newMode))
+        self.client.mutation(
+            'mutation{user(devMode:%s){id}}' % (newMode), blocking=True)
 
     @property
     def emailIsVerified(self):
-        res = self.client.query('{user{emailIsVerified}}')
-        return res["user"]["emailIsVerified"]
+        res = self.client.query('{user{emailIsVerified}}', keys=[
+                                "user", "emailIsVerified"])
+        return res
 
     @property
     def environments(self):
@@ -88,8 +101,9 @@ class EnvironmentList:
         self.current = 0
 
     def __len__(self):
-        res = self.client.query('{user{environmentCount}}')
-        return res["user"]["environmentCount"]
+        res = self.client.query('{user{environmentCount}}', keys=[
+                                "user", "environmentCount"])
+        return res
 
     def __getitem__(self, i):
         if isinstance(i, int):

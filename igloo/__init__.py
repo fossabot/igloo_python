@@ -8,6 +8,10 @@ from .models.user import User
 from .models.environment import Environment
 from .models.device import Device
 from .mutations import MutationRoot
+from .subscriptions import SubscriptionRoot
+from .utils import get_from_dict
+from aiohttp import ClientSession
+import asyncio
 
 url = "https://iglooql.herokuapp.com/graphql"
 
@@ -17,8 +21,17 @@ class GraphQLException(Exception):
 
 
 class Client:
-    def __init__(self, token):
+    def __init__(self, token, asyncio=False):
         self.token = token
+        self.session = ClientSession()
+        self.asyncio = asyncio
+
+    def __del__(self):
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.__close__())
+
+    async def __close__(self):
+        await self.session.close()
 
     @property
     def query_root(self):
@@ -28,7 +41,29 @@ class Client:
     def mutation_root(self):
         return MutationRoot(self)
 
-    def query(self, query, variables=None, authenticated=True):
+    @property
+    def subscription_root(self):
+        return SubscriptionRoot(self)
+
+    async def __async_query(self, query, variables=None, keys=[]):
+        payload = {"query": query}
+        if variables != None:
+            payload["variables"] = variables
+
+        headers = {
+            'content-type': "application/json",
+            'authorization': "Bearer " + self.token
+        }
+
+        async with self.session.post(url, data=json.dumps(payload), headers=headers) as response:
+            parsedRes = await response.json()
+
+        if "errors" in parsedRes.keys():
+            raise GraphQLException(parsedRes["errors"][0]["message"])
+
+        return get_from_dict(parsedRes, ["data", *keys])
+
+    def __sync_query(self, query, variables=None, keys=[]):
         payload = {"query": query}
         if variables != None:
             payload["variables"] = variables
@@ -45,11 +80,19 @@ class Client:
         if "errors" in parsedRes.keys():
             raise GraphQLException(parsedRes["errors"][0]["message"])
 
-        return parsedRes["data"]
+        return get_from_dict(parsedRes, ["data", *keys])
+
+    def query(self, query, variables=None, keys=[], blocking=None):
+        if blocking or (blocking is None and not self.asyncio):
+            return self.__sync_query(query, variables=variables, keys=keys)
+        else:
+            return self.__async_query(query, variables=variables, keys=keys)
 
     mutation = query
 
     async def subscribe(self, query):
+        print("called subscribe")
+
         async with websockets.connect(
                 'wss://igloo-production.herokuapp.com/subscriptions', ssl=True, subprotocols=["graphql-ws"]) as websocket:
             await websocket.send('{"type":"connection_init","payload":{"Authorization":"Bearer %s"}}' % (self.token))
@@ -58,12 +101,15 @@ class Client:
             if json.loads(res)["type"] != "connection_ack":
                 raise Exception("failed to connect")
 
-            await websocket.send('{"id":"1","type":"start","payload":{"query":"%s","variables":null}}' % (query))
+            listen_query_message = '{"id":"1","type":"start","payload":{"query":"%s","variables":null}}' % (
+                query.replace('"', '\\"')
+            )
+            await websocket.send(listen_query_message)
             while True:
                 response = await websocket.recv()
                 parsedResponse = json.loads(response)
-
                 if parsedResponse["type"] == "data":
+                    print(parsedResponse)
                     yield parsedResponse["payload"]["data"]
 
 

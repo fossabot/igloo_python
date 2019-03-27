@@ -8,13 +8,14 @@ class Environment:
 
     @property
     def name(self):
-        res = self.client.query('{environment(id:"%s"){name}}' % self.id)
-        return res["environment"]["name"]
+        res = self.client.query('{environment(id:"%s"){name}}' % self.id, keys=[
+                                "environment", "name"])
+        return res
 
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{environment(id:"%s", name:"%s"){id}}' % (self.id, newName))
+            'mutation{environment(id:"%s", name:"%s"){id}}' % (self.id, newName), blocking=True)
 
     @property
     def devices(self):
@@ -55,7 +56,7 @@ class DeviceList:
         res = self.client.query(
             '{environment(id:"%s"){devices(limit:1, offset:%d){id}}}' % (self.environmentId, self.current))
 
-        if len(res["environment"]["devices"]) != 1:
+        if len(res["environment", "devices"]) != 1:
             raise StopIteration
 
         self.current += 1

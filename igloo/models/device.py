@@ -5,10 +5,11 @@ class Device:
 
     @property
     def name(self):
-        res = self.client.query('{device(id:"%s"){name}}' % self.id)
-        return res["device"]["name"]
+        res = self.client.query('{device(id:"%s"){name}}' %
+                                self.id, keys=["device", "name"])
+        return res
 
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{device(id:"%s", name:"%s"){id}}' % (self.id, newName))
+            'mutation{device(id:"%s", name:"%s"){id}}' % (self.id, newName), blocking=True)
