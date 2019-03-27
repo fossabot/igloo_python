@@ -13,7 +13,7 @@ class User:
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{user(name:"%s"){id}}' % (newName), blocking=True)
+            'mutation{user(name:"%s"){id}}' % (newName), asyncio=False)
 
     @property
     def profileIconColor(self):
@@ -72,7 +72,7 @@ class User:
     @quietMode.setter
     def quietMode(self, newMode):
         self.client.mutation(
-            'mutation{user(quietMode:%s){id}}' % (newMode), blocking=True)
+            'mutation{user(quietMode:%s){id}}' % (newMode), asyncio=False)
 
     @property
     def devMode(self):
@@ -82,7 +82,7 @@ class User:
     @devMode.setter
     def devMode(self, newMode):
         self.client.mutation(
-            'mutation{user(devMode:%s){id}}' % (newMode), blocking=True)
+            'mutation{user(devMode:%s){id}}' % (newMode), asyncio=False)
 
     @property
     def emailIsVerified(self):

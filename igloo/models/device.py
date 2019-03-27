@@ -12,4 +12,4 @@ class Device:
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{device(id:"%s", name:"%s"){id}}' % (self.id, newName), blocking=True)
+            'mutation{device(id:"%s", name:"%s"){id}}' % (self.id, newName), asyncio=False)

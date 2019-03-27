@@ -82,8 +82,8 @@ class Client:
 
         return get_from_dict(parsedRes, ["data", *keys])
 
-    def query(self, query, variables=None, keys=[], blocking=None):
-        if blocking or (blocking is None and not self.asyncio):
+    def query(self, query, variables=None, keys=[], asyncio=None):
+        if asyncio == False or (asyncio is None and not self.asyncio):
             return self.__sync_query(query, variables=variables, keys=keys)
         else:
             return self.__async_query(query, variables=variables, keys=keys)
@@ -91,8 +91,6 @@ class Client:
     mutation = query
 
     async def subscribe(self, query):
-        print("called subscribe")
-
         async with websockets.connect(
                 'wss://igloo-production.herokuapp.com/subscriptions', ssl=True, subprotocols=["graphql-ws"]) as websocket:
             await websocket.send('{"type":"connection_init","payload":{"Authorization":"Bearer %s"}}' % (self.token))

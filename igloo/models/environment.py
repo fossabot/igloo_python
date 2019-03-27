@@ -15,7 +15,7 @@ class Environment:
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{environment(id:"%s", name:"%s"){id}}' % (self.id, newName), blocking=True)
+            'mutation{environment(id:"%s", name:"%s"){id}}' % (self.id, newName), asyncio=False)
 
     @property
     def devices(self):
