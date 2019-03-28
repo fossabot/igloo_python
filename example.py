@@ -12,7 +12,7 @@ client = Client(token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiJmMTAy
 #         print("  - {}".format(device.name))
 
 print(client.mutation_root.verifyPassword(
-    "andrea@igloo.ooo", "sleeping polar bear"))
+    "email@foo.bar", "password"))
 
 # OUTPUT:
 # Here are the first 3 environments of user Andrea
