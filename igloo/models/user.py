@@ -1,14 +1,39 @@
 from .environment import Environment
+from aiodataloader import DataLoader
+
+
+class UserLoader(DataLoader):
+    def __init__(self, client):
+        super().__init__()
+        self.client = client
+
+    async def batch_load_fn(self, keys):
+        fields = " ".join(set(keys))
+        res = await self.client.query('{user{%s}}' % fields, keys=["user"])
+
+        resolvedValues = [res[key] for key in keys]
+
+        return resolvedValues
 
 
 class User:
     def __init__(self, client):
         self.client = client
+        self.loader = UserLoader(client)
+
+    @property
+    def email(self):
+        if self.client.asyncio:
+            return self.loader.load("email")
+        else:
+            return self.client.query('{user{email}}', keys=["user", "email"])
 
     @property
     def name(self):
-        res = self.client.query('{user{name}}', keys=["user", "name"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("name")
+        else:
+            return self.client.query('{user{name}}', keys=["user", "name"])
 
     @name.setter
     def name(self, newName):
@@ -17,57 +42,75 @@ class User:
 
     @property
     def profileIconColor(self):
-        res = self.client.query('{user{profileIconColor}}',
-                                keys=["user", "profileIconColor"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("profileIconColor")
+        else:
+            return self.client.query('{user{profileIconColor}}',
+                                     keys=["user", "profileIconColor"])
 
     @property
     def pendingEnvironmentShareCount(self):
-        res = self.client.query('{user{pendingEnvironmentShareCount}}', keys=[
-                                "user", "pendingEnvironmentShareCount"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("pendingEnvironmentShareCount")
+        else:
+            return self.client.query('{user{pendingEnvironmentShareCount}}', keys=[
+                "user", "pendingEnvironmentShareCount"])
 
     @property
     def pendingOwnerChangeCount(self):
-        res = self.client.query('{user{pendingOwnerChangeCount}}', keys=[
-                                "user", "pendingOwnerChangeCount"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("pendingOwnerChangeCount")
+        else:
+            return self.client.query('{user{pendingOwnerChangeCount}}', keys=[
+                "user", "pendingOwnerChangeCount"])
 
     @property
     def environmentCount(self):
-        res = self.client.query('{user{environmentCount}}', keys=[
-                                "user", "environmentCount"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("environmentCount")
+        else:
+            return self.client.query('{user{environmentCount}}', keys=[
+                "user", "environmentCount"])
 
     @property
     def deviceCount(self):
-        res = self.client.query('{user{deviceCount}}', keys=[
-                                "user", "deviceCount"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("deviceCount")
+        else:
+            return self.client.query('{user{deviceCount}}', keys=[
+                "user", "deviceCount"])
 
     @property
     def valueCount(self):
-        res = self.client.query('{user{valueCount}}', keys=[
-                                "user", "valueCount"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("valueCount")
+        else:
+            return self.client.query('{user{valueCount}}', keys=[
+                "user", "valueCount"])
 
     @property
     def notificationCount(self):
-        res = self.client.query('{user{notificationCount}}', keys=[
-                                "user", "notificationCount"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("notificationCount")
+        else:
+            return self.client.query('{user{notificationCount}}', keys=[
+                "user", "notificationCount"])
 
     @property
     def permanentTokenCount(self):
-        res = self.client.query('{user{permanentTokenCount}}', keys=[
-                                "user", "permanentTokenCount"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("permanentTokenCount")
+        else:
+            return self.client.query('{user{permanentTokenCount}}', keys=[
+                "user", "permanentTokenCount"])
 
     @property
     def quietMode(self):
-        res = self.client.query('{user{quietMode}}', keys=[
-                                "user", "quietMode"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("quietMode")
+        else:
+            return self.client.query('{user{quietMode}}', keys=[
+                "user", "quietMode"])
 
     @quietMode.setter
     def quietMode(self, newMode):
@@ -76,8 +119,10 @@ class User:
 
     @property
     def devMode(self):
-        res = self.client.query('{user{devMode}}', keys=["user", "devMode"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("devMode")
+        else:
+            return self.client.query('{user{devMode}}', keys=["user", "devMode"])
 
     @devMode.setter
     def devMode(self, newMode):
@@ -86,9 +131,11 @@ class User:
 
     @property
     def emailIsVerified(self):
-        res = self.client.query('{user{emailIsVerified}}', keys=[
-                                "user", "emailIsVerified"])
-        return res
+        if self.client.asyncio:
+            return self.loader.load("emailIsVerified")
+        else:
+            return self.client.query('{user{emailIsVerified}}', keys=[
+                "user", "emailIsVerified"])
 
     @property
     def environments(self):

@@ -1,5 +1,5 @@
-def get_from_dict(dict, keys):
+def get_from_dict(d, keys):
     if len(keys) == 0:
-        return dict
+        return d
     else:
-        return get_from_dict(dict[keys[0]], keys[1:])
+        return get_from_dict(d[keys[0]], keys[1:])

@@ -8,4 +8,8 @@ class SubscriptionRoot:
 
     async def deviceUpdated(self):
         async for data in self.client.subscribe('subscription{deviceUpdated{id}}'):
-            return data
+            yield data
+
+    async def valueUpdated(self):
+        async for data in self.client.subscribe('subscription{valueUpdated{id}}'):
+            yield data

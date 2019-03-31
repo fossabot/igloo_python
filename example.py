@@ -1,22 +1,6 @@
-from igloo import Client
+from igloo import Client, Device
 
-client = Client(token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiJmMTAyZGVhYy0wZGQyLTQwZWQtOTM4NS1lMzI3YjM0M2Y2ZmUiLCJ0b2tlbklkIjoiYWRjMjg4MzgtOGUyMi00OWYyLWI1ZDktYWI4M2Y0M2ZkN2RkIiwiYWNjZXNzTGV2ZWwiOiJERVZJQ0UiLCJ0b2tlblR5cGUiOiJQRVJNQU5FTlQifQ.f7GWid4sS8GhQB_qb9PQlI98ULp3HC3-63Ja97vuLYcFCzg9vKF-P5b1GBCgh1t_2GD3qa2p_UeIF5y6Ues65g")
+client = Client(token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJleHAiOjE1NTQ0OTcyNjksInVzZXJJZCI6ImU3NjFmZmUyLWUzZDktNDRiNi1iNjJkLTQzZjhlOWMxNGM2MiIsImFjY2Vzc0xldmVsIjoiT1dORVIiLCJ0b2tlblR5cGUiOiJURU1QT1JBUlkifQ.gZFA4bxGLNwiAs5ZoyUlZ4lgItBNUrxOuKhToC5bMR_W5xDym7Hbj1lfUv_RQHe2-IHDUL7n-xHdVkeVdA4PmA")
 
-# user = client.query_root.user
-# user.name = "Andrea"
-
-# print("Here are the first 3 environments of user {}".format(user.name))
-# for environment in user.environments[:3]:
-#     print("- {} ({})".format(environment.name, len(environment.devices)))
-#     for device in environment.devices:
-#         print("  - {}".format(device.name))
-
-print(client.mutation_root.verifyPassword(
-    "email@foo.bar", "password"))
-
-# OUTPUT:
-# Here are the first 3 environments of user Andrea
-# - A (0)
-# - A (1)
-#   - Claimed device
-# - A (0)
+thermometer = Device(client, "2e641e37-dc2d-46a0-9113-27a85063d5bd")
+print(thermometer.deviceType)

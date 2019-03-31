@@ -7,6 +7,7 @@ import json
 from .models.user import User
 from .models.environment import Environment
 from .models.device import Device
+from .models.float_value import FloatValue
 from .mutations import MutationRoot
 from .subscriptions import SubscriptionRoot
 from .utils import get_from_dict
