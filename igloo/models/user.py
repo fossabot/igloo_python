@@ -49,62 +49,6 @@ class User:
                                      keys=["user", "profileIconColor"])
 
     @property
-    def pendingEnvironmentShareCount(self):
-        if self.client.asyncio:
-            return self.loader.load("pendingEnvironmentShareCount")
-        else:
-            return self.client.query('{user{pendingEnvironmentShareCount}}', keys=[
-                "user", "pendingEnvironmentShareCount"])
-
-    @property
-    def pendingOwnerChangeCount(self):
-        if self.client.asyncio:
-            return self.loader.load("pendingOwnerChangeCount")
-        else:
-            return self.client.query('{user{pendingOwnerChangeCount}}', keys=[
-                "user", "pendingOwnerChangeCount"])
-
-    @property
-    def environmentCount(self):
-        if self.client.asyncio:
-            return self.loader.load("environmentCount")
-        else:
-            return self.client.query('{user{environmentCount}}', keys=[
-                "user", "environmentCount"])
-
-    @property
-    def deviceCount(self):
-        if self.client.asyncio:
-            return self.loader.load("deviceCount")
-        else:
-            return self.client.query('{user{deviceCount}}', keys=[
-                "user", "deviceCount"])
-
-    @property
-    def valueCount(self):
-        if self.client.asyncio:
-            return self.loader.load("valueCount")
-        else:
-            return self.client.query('{user{valueCount}}', keys=[
-                "user", "valueCount"])
-
-    @property
-    def notificationCount(self):
-        if self.client.asyncio:
-            return self.loader.load("notificationCount")
-        else:
-            return self.client.query('{user{notificationCount}}', keys=[
-                "user", "notificationCount"])
-
-    @property
-    def permanentTokenCount(self):
-        if self.client.asyncio:
-            return self.loader.load("permanentTokenCount")
-        else:
-            return self.client.query('{user{permanentTokenCount}}', keys=[
-                "user", "permanentTokenCount"])
-
-    @property
     def quietMode(self):
         if self.client.asyncio:
             return self.loader.load("quietMode")
@@ -115,7 +59,7 @@ class User:
     @quietMode.setter
     def quietMode(self, newMode):
         self.client.mutation(
-            'mutation{user(quietMode:%s){id}}' % (newMode), asyncio=False)
+            'mutation{user(quietMode:%s){id}}' % ("true" if newMode else "false"), asyncio=False)
 
     @property
     def devMode(self):
@@ -127,7 +71,7 @@ class User:
     @devMode.setter
     def devMode(self, newMode):
         self.client.mutation(
-            'mutation{user(devMode:%s){id}}' % (newMode), asyncio=False)
+            'mutation{user(devMode:%s){id}}' % ("true" if newMode else "false"), asyncio=False)
 
     @property
     def emailIsVerified(self):
@@ -136,6 +80,22 @@ class User:
         else:
             return self.client.query('{user{emailIsVerified}}', keys=[
                 "user", "emailIsVerified"])
+
+    @property
+    def primaryAuthenticationMethods(self):
+        if self.client.asyncio:
+            return self.loader.load("primaryAuthenticationMethods")
+        else:
+            return self.client.query('{user{primaryAuthenticationMethods}}', keys=[
+                "user", "primaryAuthenticationMethods"])
+
+    @property
+    def secondaryAuthenticationMethods(self):
+        if self.client.asyncio:
+            return self.loader.load("secondaryAuthenticationMethods")
+        else:
+            return self.client.query('{user{secondaryAuthenticationMethods}}', keys=[
+                "user", "secondaryAuthenticationMethods"])
 
     @property
     def environments(self):
