@@ -1,6 +1,6 @@
 from igloo import Client, Device
 
-client = Client(token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJleHAiOjE1NTQ0OTcyNjksInVzZXJJZCI6ImU3NjFmZmUyLWUzZDktNDRiNi1iNjJkLTQzZjhlOWMxNGM2MiIsImFjY2Vzc0xldmVsIjoiT1dORVIiLCJ0b2tlblR5cGUiOiJURU1QT1JBUlkifQ.gZFA4bxGLNwiAs5ZoyUlZ4lgItBNUrxOuKhToC5bMR_W5xDym7Hbj1lfUv_RQHe2-IHDUL7n-xHdVkeVdA4PmA")
+client = Client(token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiJlNzYxZmZlMi1lM2Q5LTQ0YjYtYjYyZC00M2Y4ZTljMTRjNjIiLCJ0b2tlbklkIjoiMGQxNTcxNGEtM2UyZS00NjFhLTg2ZTMtOGQwZWUwMTY4NWEzIiwiYWNjZXNzTGV2ZWwiOiJERVZJQ0UiLCJ0b2tlblR5cGUiOiJQRVJNQU5FTlQifQ.ttiW6TVvcKoWmhDSL8fTqq_ItWvPa_41zolI4gRi2zwKlUVV-PWRMk3QM1ZcAuEuOtGGLaPuilR-4Z6JZf13ag")
 
-thermometer = Device(client, "2e641e37-dc2d-46a0-9113-27a85063d5bd")
-print(thermometer.deviceType)
+thermometer = Device(client, "229718d6-e4fe-43dd-a2e6-6504a2e9a5f9")
+print(thermometer.online)

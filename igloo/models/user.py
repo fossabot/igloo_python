@@ -22,6 +22,10 @@ class User:
         self.loader = UserLoader(client)
 
     @property
+    def id(self):
+        return self._id
+
+    @property
     def email(self):
         if self.client.asyncio:
             return self.loader.load("email")

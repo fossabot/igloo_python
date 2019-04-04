@@ -3,7 +3,7 @@ from aiodataloader import DataLoader
 from .device import Device
 
 
-class FloatValueLoader(DataLoader):
+class StringValueLoader(DataLoader):
     def __init__(self, client, id):
         super().__init__()
         self.client = client
@@ -11,7 +11,7 @@ class FloatValueLoader(DataLoader):
 
     async def batch_load_fn(self, keys):
         fields = " ".join(set(keys))
-        res = await self.client.query('{floatValue(id:"%s"){%s}}' % (self._id, fields), keys=["floatValue"])
+        res = await self.client.query('{stringValue(id:"%s"){%s}}' % (self._id, fields), keys=["stringValue"])
 
         # if fetching object the key will be the first part of the field
         # e.g. when fetching device{id} the result is in the device key
@@ -20,11 +20,11 @@ class FloatValueLoader(DataLoader):
         return resolvedValues
 
 
-class FloatValue:
+class StringValue:
     def __init__(self, client, id):
         self.client = client
         self._id = id
-        self.loader = FloatValueLoader(client, id)
+        self.loader = StringValueLoader(client, id)
 
     @property
     def id(self):
@@ -35,76 +35,76 @@ class FloatValue:
         if self.client.asyncio:
             return self.loader.load("name")
         else:
-            return self.client.query('{floatValue(id:"%s"){name}}' % self._id, keys=[
-                "floatValue", "name"])
+            return self.client.query('{stringValue(id:"%s"){name}}' % self._id, keys=[
+                "stringValue", "name"])
 
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{floatValue(id:"%s", name:"%s"){id}}' % (self._id, newName), asyncio=False)
+            'mutation{stringValue(id:"%s", name:"%s"){id}}' % (self._id, newName), asyncio=False)
 
     @property
     def visibility(self):
         if self.client.asyncio:
             return self.loader.load("visibility")
         else:
-            return self.client.query('{floatValue(id:"%s"){visibility}}' % self._id, keys=[
-                "floatValue", "visibility"])
+            return self.client.query('{stringValue(id:"%s"){visibility}}' % self._id, keys=[
+                "stringValue", "visibility"])
 
     @visibility.setter
     def visibility(self, newValue):
         self.client.mutation(
-            'mutation{floatValue(id:"%s", visibility:%s){id}}' % (self._id, newValue), asyncio=False)
+            'mutation{stringValue(id:"%s", visibility:%s){id}}' % (self._id, newValue), asyncio=False)
 
     @property
     def cardSize(self):
         if self.client.asyncio:
             return self.loader.load("cardSize")
         else:
-            return self.client.query('{floatValue(id:"%s"){cardSize}}' % self._id, keys=[
-                "floatValue", "cardSize"])
+            return self.client.query('{stringValue(id:"%s"){cardSize}}' % self._id, keys=[
+                "stringValue", "cardSize"])
 
     @cardSize.setter
     def cardSize(self, newValue):
         self.client.mutation(
-            'mutation{floatValue(id:"%s", cardSize:%s){id}}' % (self._id, newValue), asyncio=False)
+            'mutation{stringValue(id:"%s", cardSize:%s){id}}' % (self._id, newValue), asyncio=False)
 
     @property
     def index(self):
         if self.client.asyncio:
             return self.loader.load("index")
         else:
-            return self.client.query('{floatValue(id:"%s"){index}}' % self._id, keys=[
-                "floatValue", "index"])
+            return self.client.query('{stringValue(id:"%s"){index}}' % self._id, keys=[
+                "stringValue", "index"])
 
     @index.setter
     def index(self, newValue):
         self.client.mutation(
-            'mutation{floatValue(id:"%s", index:%s){id}}' % (self._id, newValue), asyncio=False)
+            'mutation{stringValue(id:"%s", index:%s){id}}' % (self._id, newValue), asyncio=False)
 
     @property
     def myRole(self):
         if self.client.asyncio:
             return self.loader.load("myRole")
         else:
-            return self.client.query('{floatValue(id:"%s"){myRole}}' % self._id, keys=[
-                "floatValue", "myRole"])
+            return self.client.query('{stringValue(id:"%s"){myRole}}' % self._id, keys=[
+                "stringValue", "myRole"])
 
     @property
     def createdAt(self):
         if self.client.asyncio:
             return self.loader.load("createdAt")
         else:
-            return self.client.query('{floatValue(id:"%s"){createdAt}}' % self._id, keys=[
-                "floatValue", "createdAt"])
+            return self.client.query('{stringValue(id:"%s"){createdAt}}' % self._id, keys=[
+                "stringValue", "createdAt"])
 
     @property
     def updatedAt(self):
         if self.client.asyncio:
             return self.loader.load("updatedAt")
         else:
-            return self.client.query('{floatValue(id:"%s"){updatedAt}}' % self._id, keys=[
-                "floatValue", "updatedAt"])
+            return self.client.query('{stringValue(id:"%s"){updatedAt}}' % self._id, keys=[
+                "stringValue", "updatedAt"])
 
     async def _async_load_device(self):
         id = await self.loader.load("device{id}")["id"]
@@ -115,7 +115,7 @@ class FloatValue:
         if self.client.asyncio:
             return self._async_load_device()
         else:
-            id = self.client.query('{floatValue(id:"%s"){device{id}}}' % self._id, keys=[
-                "floatValue", "device", "id"])
+            id = self.client.query('{stringValue(id:"%s"){device{id}}}' % self._id, keys=[
+                "stringValue", "device", "id"])
 
             return Device(self.client, id)

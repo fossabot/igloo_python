@@ -14,7 +14,8 @@ from .utils import get_from_dict
 from aiohttp import ClientSession
 import asyncio
 
-url = "https://iglooql.herokuapp.com/graphql"
+host = "bering.igloo.ooo"
+url = "https://{}/graphql".format(host)
 
 
 class GraphQLException(Exception):
@@ -93,7 +94,7 @@ class Client:
 
     async def subscribe(self, query):
         async with websockets.connect(
-                'wss://igloo-production.herokuapp.com/subscriptions', ssl=True, subprotocols=["graphql-ws"]) as websocket:
+                'wss://{}/subscriptions'.format(host), ssl=True, subprotocols=["graphql-ws"]) as websocket:
             await websocket.send('{"type":"connection_init","payload":{"Authorization":"Bearer %s"}}' % (self.token))
 
             res = await websocket.recv()

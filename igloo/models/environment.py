@@ -6,11 +6,11 @@ class EnvironmentLoader(DataLoader):
     def __init__(self, client, id):
         super().__init__()
         self.client = client
-        self.id = id
+        self._id = id
 
     async def batch_load_fn(self, keys):
         fields = " ".join(set(keys))
-        res = await self.client.query('{environment(id:"%s"){%s}}' % (self.id, fields), keys=["environment"])
+        res = await self.client.query('{environment(id:"%s"){%s}}' % (self._id, fields), keys=["environment"])
 
         resolvedValues = [res[key] for key in keys]
 
@@ -20,28 +20,32 @@ class EnvironmentLoader(DataLoader):
 class Environment:
     def __init__(self, client, id):
         self.client = client
-        self.id = id
+        self._id = id
         self.loader = EnvironmentLoader(client, id)
+
+    @property
+    def id(self):
+        return self._id
 
     @property
     def name(self):
         if self.client.asyncio:
             return self.loader.load("name")
         else:
-            return self.client.query('{environment(id:"%s"){name}}' % self.id, keys=[
+            return self.client.query('{environment(id:"%s"){name}}' % self._id, keys=[
                 "environment", "name"])
 
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{environment(id:"%s", name:"%s"){id}}' % (self.id, newName), asyncio=False)
+            'mutation{environment(id:"%s", name:"%s"){id}}' % (self._id, newName), asyncio=False)
 
     @property
     def myRole(self):
         if self.client.asyncio:
             return self.loader.load("myRole")
         else:
-            return self.client.query('{environment(id:"%s"){myRole}}' % self.id, keys=[
+            return self.client.query('{environment(id:"%s"){myRole}}' % self._id, keys=[
                 "environment", "myRole"])
 
     @property
@@ -49,20 +53,20 @@ class Environment:
         if self.client.asyncio:
             return self.loader.load("picture")
         else:
-            return self.client.query('{environment(id:"%s"){picture}}' % self.id, keys=[
+            return self.client.query('{environment(id:"%s"){picture}}' % self._id, keys=[
                 "environment", "picture"])
 
     @picture.setter
     def picture(self, newPicture):
         self.client.mutation(
-            'mutation{environment(id:"%s", picture:"%s"){id}}' % (self.id, newPicture), asyncio=False)
+            'mutation{environment(id:"%s", picture:"%s"){id}}' % (self._id, newPicture), asyncio=False)
 
     @property
     def uniqueFirmwares(self):
         if self.client.asyncio:
             return self.loader.load("uniqueFirmwares")
         else:
-            return self.client.query('{environment(id:"%s"){uniqueFirmwares}}' % self.id, keys=[
+            return self.client.query('{environment(id:"%s"){uniqueFirmwares}}' % self._id, keys=[
                 "environment", "uniqueFirmwares"])
 
     @property
@@ -70,30 +74,30 @@ class Environment:
         if self.client.asyncio:
             return self.loader.load("index")
         else:
-            return self.client.query('{environment(id:"%s"){index}}' % self.id, keys=[
+            return self.client.query('{environment(id:"%s"){index}}' % self._id, keys=[
                 "environment", "index"])
 
     @index.setter
     def index(self, newIndex):
         self.client.mutation(
-            'mutation{environment(id:"%s", index:%s){id}}' % (self.id, newIndex), asyncio=False)
+            'mutation{environment(id:"%s", index:%s){id}}' % (self._id, newIndex), asyncio=False)
 
     @property
     def muted(self):
         if self.client.asyncio:
             return self.loader.load("muted")
         else:
-            return self.client.query('{environment(id:"%s"){muted}}' % self.id, keys=[
+            return self.client.query('{environment(id:"%s"){muted}}' % self._id, keys=[
                 "environment", "muted"])
 
     @muted.setter
     def muted(self, newMuted):
         self.client.mutation(
-            'mutation{environment(id:"%s", muted:%s){id}}' % (self.id, "true" if newMuted else "false"), asyncio=False)
+            'mutation{environment(id:"%s", muted:%s){id}}' % (self._id, "true" if newMuted else "false"), asyncio=False)
 
     @property
     def devices(self):
-        return DeviceList(self.client, self.id)
+        return DeviceList(self.client, self._id)
 
 
 class DeviceList:

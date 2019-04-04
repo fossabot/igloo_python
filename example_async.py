@@ -29,10 +29,9 @@ async def keepOnline(client):
 
 
 async def main():
-    client = Client(asyncio=True, token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiJmMTAyZGVhYy0wZGQyLTQwZWQtOTM4NS1lMzI3YjM0M2Y2ZmUiLCJ0b2tlbklkIjoiYWRjMjg4MzgtOGUyMi00OWYyLWI1ZDktYWI4M2Y0M2ZkN2RkIiwiYWNjZXNzTGV2ZWwiOiJERVZJQ0UiLCJ0b2tlblR5cGUiOiJQRVJNQU5FTlQifQ.f7GWid4sS8GhQB_qb9PQlI98ULp3HC3-63Ja97vuLYcFCzg9vKF-P5b1GBCgh1t_2GD3qa2p_UeIF5y6Ues65g")
+    client = Client(asyncio=True, token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiJlNzYxZmZlMi1lM2Q5LTQ0YjYtYjYyZC00M2Y4ZTljMTRjNjIiLCJ0b2tlbklkIjoiMGQxNTcxNGEtM2UyZS00NjFhLTg2ZTMtOGQwZWUwMTY4NWEzIiwiYWNjZXNzTGV2ZWwiOiJERVZJQ0UiLCJ0b2tlblR5cGUiOiJQRVJNQU5FTlQifQ.ttiW6TVvcKoWmhDSL8fTqq_ItWvPa_41zolI4gRi2zwKlUVV-PWRMk3QM1ZcAuEuOtGGLaPuilR-4Z6JZf13ag")
 
-    # await asyncio.gather(monitor_humidity(), monitor_temperature(), client.subscription_root.keepOnline("229718d6-e4fe-43dd-a2e6-6504a2e9a5f9"))
-    await asyncio.gather(monitor_humidity(), monitor_temperature(), keepOnline(client))
+    await asyncio.gather(monitor_humidity(), monitor_temperature(), client.subscription_root.keepOnline("229718d6-e4fe-43dd-a2e6-6504a2e9a5f9"))
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
