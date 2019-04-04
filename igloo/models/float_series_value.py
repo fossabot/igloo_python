@@ -119,3 +119,68 @@ class FloatSeriesValue:
                 "floatSeriesValue", "device", "id"])
 
             return Device(self.client, id)
+
+    @property
+    def unitOfMeasurement(self):
+        if self.client.asyncio:
+            return self.loader.load("unitOfMeasurement")
+        else:
+            return self.client.query('{floatSeriesValue(id:"%s"){unitOfMeasurement}}' % self._id, keys=[
+                "floatSeriesValue", "unitOfMeasurement"])
+
+    @unitOfMeasurement.setter
+    def unitOfMeasurement(self, newValue):
+        self.client.mutation(
+            'mutation{floatSeriesValue(id:"%s", unitOfMeasurement:"%s"){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def precision(self):
+        if self.client.asyncio:
+            return self.loader.load("precision")
+        else:
+            return self.client.query('{floatSeriesValue(id:"%s"){precision}}' % self._id, keys=[
+                "floatSeriesValue", "precision"])
+
+    @precision.setter
+    def precision(self, newValue):
+        self.client.mutation(
+            'mutation{floatSeriesValue(id:"%s", precision:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def min(self):
+        if self.client.asyncio:
+            return self.loader.load("min")
+        else:
+            return self.client.query('{floatSeriesValue(id:"%s"){min}}' % self._id, keys=[
+                "floatSeriesValue", "min"])
+
+    @min.setter
+    def min(self, newValue):
+        self.client.mutation(
+            'mutation{floatSeriesValue(id:"%s", min:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def max(self):
+        if self.client.asyncio:
+            return self.loader.load("max")
+        else:
+            return self.client.query('{floatSeriesValue(id:"%s"){max}}' % self._id, keys=[
+                "floatSeriesValue", "max"])
+
+    @max.setter
+    def max(self, newValue):
+        self.client.mutation(
+            'mutation{floatSeriesValue(id:"%s", max:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def threshold(self):
+        if self.client.asyncio:
+            return self.loader.load("threshold")
+        else:
+            return self.client.query('{floatSeriesValue(id:"%s"){threshold}}' % self._id, keys=[
+                "floatSeriesValue", "threshold"])
+
+    @threshold.setter
+    def threshold(self, newValue):
+        self.client.mutation(
+            'mutation{floatSeriesValue(id:"%s", threshold:%s){id}}' % (self._id, newValue), asyncio=False)

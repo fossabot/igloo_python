@@ -119,3 +119,81 @@ class FloatValue:
                 "floatValue", "device", "id"])
 
             return Device(self.client, id)
+
+    @property
+    def permission(self):
+        if self.client.asyncio:
+            return self.loader.load("permission")
+        else:
+            return self.client.query('{floatValue(id:"%s"){permission}}' % self._id, keys=[
+                "floatValue", "permission"])
+
+    @permission.setter
+    def permission(self, newValue):
+        self.client.mutation(
+            'mutation{floatValue(id:"%s", permission:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def value(self):
+        if self.client.asyncio:
+            return self.loader.load("value")
+        else:
+            return self.client.query('{floatValue(id:"%s"){value}}' % self._id, keys=[
+                "floatValue", "value"])
+
+    @value.setter
+    def value(self, newValue):
+        self.client.mutation(
+            'mutation{floatValue(id:"%s", value:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def precision(self):
+        if self.client.asyncio:
+            return self.loader.load("precision")
+        else:
+            return self.client.query('{floatValue(id:"%s"){precision}}' % self._id, keys=[
+                "floatValue", "precision"])
+
+    @precision.setter
+    def precision(self, newValue):
+        self.client.mutation(
+            'mutation{floatValue(id:"%s", precision:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def min(self):
+        if self.client.asyncio:
+            return self.loader.load("min")
+        else:
+            return self.client.query('{floatValue(id:"%s"){min}}' % self._id, keys=[
+                "floatValue", "min"])
+
+    @min.setter
+    def min(self, newValue):
+        self.client.mutation(
+            'mutation{floatValue(id:"%s", min:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def max(self):
+        if self.client.asyncio:
+            return self.loader.load("max")
+        else:
+            return self.client.query('{floatValue(id:"%s"){max}}' % self._id, keys=[
+                "floatValue", "max"])
+
+    @max.setter
+    def max(self, newValue):
+        self.client.mutation(
+            'mutation{floatValue(id:"%s", max:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def unitOfMeasurement(self):
+        if self.client.asyncio:
+            return self.loader.load("unitOfMeasurement")
+        else:
+            return self.client.query('{floatValue(id:"%s"){unitOfMeasurement}}' % self._id, keys=[
+                "floatValue", "unitOfMeasurement"])
+
+    @unitOfMeasurement.setter
+    def unitOfMeasurement(self, newValue):
+        self.client.mutation(
+            'mutation{floatValue(id:"%s", unitOfMeasurement:"%s"){id}}' % (self._id, newValue), asyncio=False)

@@ -119,3 +119,40 @@ class FileValue:
                 "fileValue", "device", "id"])
 
             return Device(self.client, id)
+
+    @property
+    def permission(self):
+        if self.client.asyncio:
+            return self.loader.load("permission")
+        else:
+            return self.client.query('{fileValue(id:"%s"){permission}}' % self._id, keys=[
+                "fileValue", "permission"])
+
+    @permission.setter
+    def permission(self, newValue):
+        self.client.mutation(
+            'mutation{fileValue(id:"%s", permission:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def value(self):
+        if self.client.asyncio:
+            return self.loader.load("value")
+        else:
+            return self.client.query('{fileValue(id:"%s"){value}}' % self._id, keys=[
+                "fileValue", "value"])
+
+    @property
+    def fileName(self):
+        if self.client.asyncio:
+            return self.loader.load("fileName")
+        else:
+            return self.client.query('{fileValue(id:"%s"){fileName}}' % self._id, keys=[
+                "fileValue", "fileName"])
+
+    @property
+    def mimeType(self):
+        if self.client.asyncio:
+            return self.loader.load("mimeType")
+        else:
+            return self.client.query('{fileValue(id:"%s"){mimeType}}' % self._id, keys=[
+                "fileValue", "mimeType"])

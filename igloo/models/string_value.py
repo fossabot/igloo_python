@@ -119,3 +119,55 @@ class StringValue:
                 "stringValue", "device", "id"])
 
             return Device(self.client, id)
+
+    @property
+    def permission(self):
+        if self.client.asyncio:
+            return self.loader.load("permission")
+        else:
+            return self.client.query('{stringValue(id:"%s"){permission}}' % self._id, keys=[
+                "stringValue", "permission"])
+
+    @permission.setter
+    def permission(self, newValue):
+        self.client.mutation(
+            'mutation{stringValue(id:"%s", permission:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def value(self):
+        if self.client.asyncio:
+            return self.loader.load("value")
+        else:
+            return self.client.query('{stringValue(id:"%s"){value}}' % self._id, keys=[
+                "stringValue", "value"])
+
+    @value.setter
+    def value(self, newValue):
+        self.client.mutation(
+            'mutation{stringValue(id:"%s", value:"%s"){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def maxChars(self):
+        if self.client.asyncio:
+            return self.loader.load("maxChars")
+        else:
+            return self.client.query('{stringValue(id:"%s"){maxChars}}' % self._id, keys=[
+                "stringValue", "maxChars"])
+
+    @maxChars.setter
+    def maxChars(self, newValue):
+        self.client.mutation(
+            'mutation{stringValue(id:"%s", maxChars:%s){id}}' % (self._id, newValue), asyncio=False)
+
+    @property
+    def allowedValues(self):
+        if self.client.asyncio:
+            return self.loader.load("allowedValues")
+        else:
+            return self.client.query('{stringValue(id:"%s"){allowedValues}}' % self._id, keys=[
+                "stringValue", "allowedValues"])
+
+    @allowedValues.setter
+    def allowedValues(self, newValue):
+        self.client.mutation(
+            'mutation{stringValue(id:"%s", allowedValues:%s){id}}' % (self._id, str(newValue)), asyncio=False)

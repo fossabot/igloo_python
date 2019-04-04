@@ -119,3 +119,16 @@ class CategorySeriesValue:
                 "categorySeriesValue", "device", "id"])
 
             return Device(self.client, id)
+
+    @property
+    def allowedValues(self):
+        if self.client.asyncio:
+            return self.loader.load("allowedValues")
+        else:
+            return self.client.query('{categorySeriesValue(id:"%s"){allowedValues}}' % self._id, keys=[
+                "categorySeriesValue", "allowedValues"])
+
+    @allowedValues.setter
+    def allowedValues(self, newValue):
+        self.client.mutation(
+            'mutation{categorySeriesValue(id:"%s", allowedValues:%s){id}}' % (self._id, str(newValue)), asyncio=False)

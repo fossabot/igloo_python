@@ -119,3 +119,16 @@ class BooleanValue:
                 "booleanValue", "device", "id"])
 
             return Device(self.client, id)
+
+    @property
+    def value(self):
+        if self.client.asyncio:
+            return self.loader.load("value")
+        else:
+            return self.client.query('{booleanValue(id:"%s"){value}}' % self._id, keys=[
+                "booleanValue", "value"])
+
+    @value.setter
+    def value(self, newValue):
+        self.client.mutation(
+            'mutation{booleanValue(id:"%s", value:%s){id}}' % (self._id, "true" if newValue else "false"), asyncio=False)
