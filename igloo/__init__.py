@@ -28,6 +28,9 @@ class Client:
         self.session = ClientSession()
         self.asyncio = asyncio
 
+    def set_token(self, newToken):
+        self.token = newToken
+
     def __del__(self):
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.__close__())
