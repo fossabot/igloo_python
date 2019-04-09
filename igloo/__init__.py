@@ -137,7 +137,7 @@ class Client:
                     else:
                         yield parsedResponse["payload"]["data"]
 
-    async def subscribe(self, query):
+    async def subscribe(self, query, autoreconnect=True):
         for backoff in exponential_backoff():
             try:
                 async for res in self._subscribe(query):
@@ -145,6 +145,8 @@ class Client:
             except GraphQLException:
                 raise
             except Exception:
+                if not autoreconnect:
+                    raise
                 await asyncio.sleep(backoff)
 
 
