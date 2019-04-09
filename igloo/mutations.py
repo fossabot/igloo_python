@@ -1,5 +1,30 @@
 from .models.user import User
 from .models.permanent_token import PermanentToken
+from .models.pending_environment_share import PendingEnvironmentShare
+from .models.environment import Environment
+from .models.device import Device
+from .models.float_value import FloatValue
+from .models.pending_owner_change import PendingOwnerChange
+from .models.notification import Notification
+from .models.boolean_value import BooleanValue
+from .models.string_value import StringValue
+from .models.float_series_value import FloatSeriesValue
+from .models.category_series_value import CategorySeriesValue
+from .models.category_series_node import CategorySeriesNode
+from .models.file_value import FileValue
+from .models.float_series_node import FloatSeriesNode
+
+
+async def _asyncWrapWith(res, wrapper_fn):
+    result = await res
+    return wrapper_fn(result["id"])
+
+
+def wrapWith(res, wrapper_fn):
+    if isinstance(res, dict):
+        return wrapper_fn(res["id"])
+    else:
+        return _asyncWrapWith(res, wrapper_fn)
 
 
 class MutationRoot:
@@ -69,8 +94,13 @@ class MutationRoot:
     def createPermanentToken(self, name):
         name_arg = 'name:"%s",' % name
 
-        return self.client.mutation('mutation{createPermanentToken(%s){id}}' % (name_arg))[
+        res = self.client.mutation('mutation{createPermanentToken(%s){id}}' % (name_arg))[
             "createPermanentToken"]
+
+        def wrapper(id):
+            return PermanentToken(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def regeneratePermanentToken(self, id):
         id_arg = 'id:"%s",' % id
@@ -109,7 +139,13 @@ class MutationRoot:
         primaryAuthenticationMethods_arg = 'primaryAuthenticationMethods:%s,' % primaryAuthenticationMethods
         secondaryAuthenticationMethods_arg = 'secondaryAuthenticationMethods:%s,' % secondaryAuthenticationMethods
 
-        return self.client.mutation('mutation{changeAuthenticationSettings(%s%s){id}}' % (primaryAuthenticationMethods_arg, secondaryAuthenticationMethods_arg))["changeAuthenticationSettings"]
+        res = self.client.mutation('mutation{changeAuthenticationSettings(%s%s){id}}' % (
+            primaryAuthenticationMethods_arg, secondaryAuthenticationMethods_arg))["changeAuthenticationSettings"]
+
+        def wrapper(id):
+            return User(self.client)
+
+        return wrapWith(res, wrapper)
 
     def resendVerificationEmail(self, email):
         email_arg = 'email:"%s",' % email
@@ -121,13 +157,25 @@ class MutationRoot:
         role_arg = 'role:%s,' % role
         email_arg = 'email:"%s",' % email if email is not None else ''
         userId_arg = 'userId:"%s",' % userId if userId is not None else ''
-        return self.client.mutation('mutation{shareEnvironment(%s%s%s%s){id}}' % (environmentId_arg, email_arg, userId_arg, role_arg))["shareEnvironment"]
+        res = self.client.mutation('mutation{shareEnvironment(%s%s%s%s){id}}' % (
+            environmentId_arg, email_arg, userId_arg, role_arg))["shareEnvironment"]
+
+        def wrapper(id):
+            return PendingEnvironmentShare(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def pendingEnvironmentShare(self, id, role):
         id_arg = 'id:"%s",' % id
         role_arg = 'role:%s,' % role
 
-        return self.client.mutation('mutation{pendingEnvironmentShare(%s%s){id}}' % (id_arg, role_arg))["pendingEnvironmentShare"]
+        res = self.client.mutation('mutation{pendingEnvironmentShare(%s%s){id}}' % (
+            id_arg, role_arg))["pendingEnvironmentShare"]
+
+        def wrapper(id):
+            return PendingEnvironmentShare(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def revokePendingEnvironmentShare(self, pendingEnvironmentShareId):
         pendingEnvironmentShareId_arg = 'pendingEnvironmentShareId:"%s",' % pendingEnvironmentShareId
@@ -137,7 +185,13 @@ class MutationRoot:
     def acceptPendingEnvironmentShare(self, pendingEnvironmentShareId):
         pendingEnvironmentShareId_arg = 'pendingEnvironmentShareId:"%s",' % pendingEnvironmentShareId
 
-        return self.client.mutation('mutation{acceptPendingEnvironmentShare(%s){id}}' % (pendingEnvironmentShareId_arg))["acceptPendingEnvironmentShare"]
+        res = self.client.mutation('mutation{acceptPendingEnvironmentShare(%s){id}}' % (
+            pendingEnvironmentShareId_arg))["acceptPendingEnvironmentShare"]
+
+        def wrapper(id):
+            return PendingEnvironmentShare(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def declinePendingEnvironmentShare(self, pendingEnvironmentShareId):
         pendingEnvironmentShareId_arg = 'pendingEnvironmentShareId:"%s",' % pendingEnvironmentShareId
@@ -148,7 +202,13 @@ class MutationRoot:
         environmentId_arg = 'environmentId:"%s",' % environmentId
         email_arg = 'email:"%s",' % email if email is not None else ''
         userId_arg = 'userId:"%s",' % userId if userId is not None else ''
-        return self.client.mutation('mutation{stopSharingEnvironment(%s%s%s){id}}' % (environmentId_arg, email_arg, userId_arg))["stopSharingEnvironment"]
+        res = self.client.mutation('mutation{stopSharingEnvironment(%s%s%s){id}}' % (
+            environmentId_arg, email_arg, userId_arg))["stopSharingEnvironment"]
+
+        def wrapper(id):
+            return Environment(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def leaveEnvironment(self, environmentId):
         environmentId_arg = 'environmentId:"%s",' % environmentId
@@ -159,7 +219,13 @@ class MutationRoot:
         environmentId_arg = 'environmentId:"%s",' % environmentId
         email_arg = 'email:"%s",' % email if email is not None else ''
         userId_arg = 'userId:"%s",' % userId if userId is not None else ''
-        return self.client.mutation('mutation{changeOwner(%s%s%s){id}}' % (environmentId_arg, email_arg, userId_arg))["changeOwner"]
+        res = self.client.mutation('mutation{changeOwner(%s%s%s){id}}' % (
+            environmentId_arg, email_arg, userId_arg))["changeOwner"]
+
+        def wrapper(id):
+            return PendingOwnerChange(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def revokePendingOwnerChange(self, pendingOwnerChangeId):
         pendingOwnerChangeId_arg = 'pendingOwnerChangeId:"%s",' % pendingOwnerChangeId
@@ -181,20 +247,37 @@ class MutationRoot:
         email_arg = 'email:"%s",' % email
         newRole_arg = 'newRole:%s,' % newRole
 
-        return self.client.mutation('mutation{changeRole(%s%s%s){id}}' % (environmentId_arg, email_arg, newRole_arg))["changeRole"]
+        res = self.client.mutation('mutation{changeRole(%s%s%s){id}}' % (
+            environmentId_arg, email_arg, newRole_arg))["changeRole"]
+
+        def wrapper(id):
+            return Environment(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def createEnvironment(self, name, picture=None, index=None, muted=None):
         name_arg = 'name:"%s",' % name
         picture_arg = 'picture:%s,' % picture if picture is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
         muted_arg = 'muted:%s,' % muted if muted is not None else ''
-        return self.client.mutation('mutation{createEnvironment(%s%s%s%s){id}}' % (name_arg, picture_arg, index_arg, muted_arg))["createEnvironment"]
+        res = self.client.mutation('mutation{createEnvironment(%s%s%s%s){id}}' % (
+            name_arg, picture_arg, index_arg, muted_arg))["createEnvironment"]
+
+        def wrapper(id):
+            return Environment(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def createDevice(self, deviceType=None, firmware=None):
-
         deviceType_arg = 'deviceType:"%s",' % deviceType if deviceType is not None else ''
         firmware_arg = 'firmware:"%s",' % firmware if firmware is not None else ''
-        return self.client.mutation('mutation{createDevice(%s%s){id}}' % (deviceType_arg, firmware_arg))["createDevice"]
+        res = self.client.mutation('mutation{createDevice(%s%s){id}}' % (
+            deviceType_arg, firmware_arg))["createDevice"]
+
+        def wrapper(id):
+            return Device(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def claimDevice(self, deviceId, name, environmentId, index=None, muted=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -202,13 +285,25 @@ class MutationRoot:
         environmentId_arg = 'environmentId:"%s",' % environmentId
         index_arg = 'index:%s,' % index if index is not None else ''
         muted_arg = 'muted:%s,' % muted if muted is not None else ''
-        return self.client.mutation('mutation{claimDevice(%s%s%s%s%s){id}}' % (deviceId_arg, name_arg, index_arg, environmentId_arg, muted_arg))["claimDevice"]
+        res = self.client.mutation('mutation{claimDevice(%s%s%s%s%s){id}}' % (
+            deviceId_arg, name_arg, index_arg, environmentId_arg, muted_arg))["claimDevice"]
+
+        def wrapper(id):
+            return Device(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def createNotification(self, deviceId, content, date=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
         content_arg = 'content:"%s",' % content
         date_arg = 'date:%s,' % date if date is not None else ''
-        return self.client.mutation('mutation{createNotification(%s%s%s){id}}' % (deviceId_arg, content_arg, date_arg))["createNotification"]
+        res = self.client.mutation('mutation{createNotification(%s%s%s){id}}' % (
+            deviceId_arg, content_arg, date_arg))["createNotification"]
+
+        def wrapper(id):
+            return Notification(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def createFloatValue(self, deviceId, permission, name, visibility=None, unitOfMeasurement=None, value=None, precision=None, min=None, max=None, cardSize=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -222,7 +317,13 @@ class MutationRoot:
         max_arg = 'max:%s,' % max if max is not None else ''
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{createFloatValue(%s%s%s%s%s%s%s%s%s%s%s){id}}' % (deviceId_arg, permission_arg, visibility_arg, unitOfMeasurement_arg, value_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, index_arg))["createFloatValue"]
+        res = self.client.mutation('mutation{createFloatValue(%s%s%s%s%s%s%s%s%s%s%s){id}}' % (deviceId_arg, permission_arg, visibility_arg,
+                                                                                               unitOfMeasurement_arg, value_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, index_arg))["createFloatValue"]
+
+        def wrapper(id):
+            return FloatValue(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def createStringValue(self, deviceId, permission, name, visibility=None, value=None, maxChars=None, cardSize=None, allowedValues=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -234,7 +335,13 @@ class MutationRoot:
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         allowedValues_arg = 'allowedValues:%s,' % allowedValues if allowedValues is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{createStringValue(%s%s%s%s%s%s%s%s%s){id}}' % (deviceId_arg, permission_arg, visibility_arg, value_arg, maxChars_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["createStringValue"]
+        res = self.client.mutation('mutation{createStringValue(%s%s%s%s%s%s%s%s%s){id}}' % (
+            deviceId_arg, permission_arg, visibility_arg, value_arg, maxChars_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["createStringValue"]
+
+        def wrapper(id):
+            return StringValue(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def createBooleanValue(self, deviceId, permission, name, visibility=None, value=None, cardSize=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -244,9 +351,15 @@ class MutationRoot:
         value_arg = 'value:%s,' % value if value is not None else ''
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{createBooleanValue(%s%s%s%s%s%s%s){id}}' % (deviceId_arg, permission_arg, visibility_arg, value_arg, name_arg, cardSize_arg, index_arg))["createBooleanValue"]
+        res = self.client.mutation('mutation{createBooleanValue(%s%s%s%s%s%s%s){id}}' % (
+            deviceId_arg, permission_arg, visibility_arg, value_arg, name_arg, cardSize_arg, index_arg))["createBooleanValue"]
 
-    def createPlotValue(self, deviceId, name, visibility=None, unitOfMeasurement=None, precision=None, min=None, max=None, cardSize=None, threshold=None, index=None):
+        def wrapper(id):
+            return BooleanValue(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def createFloatSeriesValue(self, deviceId, name, visibility=None, unitOfMeasurement=None, precision=None, min=None, max=None, cardSize=None, threshold=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
         name_arg = 'name:"%s",' % name
         visibility_arg = 'visibility:%s,' % visibility if visibility is not None else ''
@@ -257,28 +370,52 @@ class MutationRoot:
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         threshold_arg = 'threshold:%s,' % threshold if threshold is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{createPlotValue(%s%s%s%s%s%s%s%s%s%s){id}}' % (deviceId_arg, visibility_arg, unitOfMeasurement_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, threshold_arg, index_arg))["createPlotValue"]
+        res = self.client.mutation('mutation{createFloatSeriesValue(%s%s%s%s%s%s%s%s%s%s){id}}' % (
+            deviceId_arg, visibility_arg, unitOfMeasurement_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, threshold_arg, index_arg))["createFloatSeriesValue"]
 
-    def createPlotNode(self, plotId, value, timestamp=None):
-        plotId_arg = 'plotId:"%s",' % plotId
+        def wrapper(id):
+            return FloatSeriesValue(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def createFloatSeriesNode(self, seriesId, value, timestamp=None):
+        seriesId_arg = 'seriesId:"%s",' % seriesId
         value_arg = 'value:%s,' % value
         timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
-        return self.client.mutation('mutation{createPlotNode(%s%s%s){id}}' % (plotId_arg, timestamp_arg, value_arg))["createPlotNode"]
+        res = self.client.mutation('mutation{createFloatSeriesNode(%s%s%s){id}}' % (
+            seriesId_arg, timestamp_arg, value_arg))["createFloatSeriesNode"]
 
-    def createCategoryPlotValue(self, deviceId, name, visibility=None, cardSize=None, allowedValues=None, index=None):
+        def wrapper(id):
+            return FloatSeriesNode(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def createCategorySeriesValue(self, deviceId, name, visibility=None, cardSize=None, allowedValues=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
         name_arg = 'name:"%s",' % name
         visibility_arg = 'visibility:%s,' % visibility if visibility is not None else ''
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         allowedValues_arg = 'allowedValues:%s,' % allowedValues if allowedValues is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{createCategoryPlotValue(%s%s%s%s%s%s){id}}' % (deviceId_arg, visibility_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["createCategoryPlotValue"]
+        res = self.client.mutation('mutation{createCategorySeriesValue(%s%s%s%s%s%s){id}}' % (
+            deviceId_arg, visibility_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["createCategorySeriesValue"]
 
-    def createCategoryPlotNode(self, plotId, value, timestamp=None):
-        plotId_arg = 'plotId:"%s",' % plotId
+        def wrapper(id):
+            return CategorySeriesValue(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def createCategorySeriesNode(self, seriesId, value, timestamp=None):
+        seriesId_arg = 'seriesId:"%s",' % seriesId
         value_arg = 'value:"%s",' % value
         timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
-        return self.client.mutation('mutation{createCategoryPlotNode(%s%s%s){id}}' % (plotId_arg, timestamp_arg, value_arg))["createCategoryPlotNode"]
+        res = self.client.mutation('mutation{createCategorySeriesNode(%s%s%s){id}}' % (
+            seriesId_arg, timestamp_arg, value_arg))["createCategorySeriesNode"]
+
+        def wrapper(id):
+            return CategorySeriesNode(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def user(self, quietMode=None, devMode=None, paymentPlan=None, name=None, profileIcon=None):
 
@@ -287,7 +424,13 @@ class MutationRoot:
         paymentPlan_arg = 'paymentPlan:%s,' % paymentPlan if paymentPlan is not None else ''
         name_arg = 'name:"%s",' % name if name is not None else ''
         profileIcon_arg = 'profileIcon:"%s",' % profileIcon if profileIcon is not None else ''
-        return self.client.mutation('mutation{user(%s%s%s%s%s){id}}' % (quietMode_arg, devMode_arg, paymentPlan_arg, name_arg, profileIcon_arg))["user"]
+        res = self.client.mutation('mutation{user(%s%s%s%s%s){id}}' % (
+            quietMode_arg, devMode_arg, paymentPlan_arg, name_arg, profileIcon_arg))["user"]
+
+        def wrapper(id):
+            return User(self.client)
+
+        return wrapWith(res, wrapper)
 
     def changeEmail(self, newEmail):
         newEmail_arg = 'newEmail:"%s",' % newEmail
@@ -320,7 +463,13 @@ class MutationRoot:
         picture_arg = 'picture:%s,' % picture if picture is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
         muted_arg = 'muted:%s,' % muted if muted is not None else ''
-        return self.client.mutation('mutation{environment(%s%s%s%s%s){id}}' % (id_arg, name_arg, picture_arg, index_arg, muted_arg))["environment"]
+        res = self.client.mutation('mutation{environment(%s%s%s%s%s){id}}' % (
+            id_arg, name_arg, picture_arg, index_arg, muted_arg))["environment"]
+
+        def wrapper(id):
+            return Environment(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def device(self, id, deviceType=None, name=None, index=None, signalStatus=None, batteryStatus=None, batteryCharging=None, firmware=None, muted=None, starred=None):
         id_arg = 'id:"%s",' % id
@@ -333,7 +482,13 @@ class MutationRoot:
         firmware_arg = 'firmware:"%s",' % firmware if firmware is not None else ''
         muted_arg = 'muted:%s,' % muted if muted is not None else ''
         starred_arg = 'starred:%s,' % starred if starred is not None else ''
-        return self.client.mutation('mutation{device(%s%s%s%s%s%s%s%s%s%s){id}}' % (id_arg, deviceType_arg, name_arg, index_arg, signalStatus_arg, batteryStatus_arg, batteryCharging_arg, firmware_arg, muted_arg, starred_arg))["device"]
+        res = self.client.mutation('mutation{device(%s%s%s%s%s%s%s%s%s%s){id}}' % (
+            id_arg, deviceType_arg, name_arg, index_arg, signalStatus_arg, batteryStatus_arg, batteryCharging_arg, firmware_arg, muted_arg, starred_arg))["device"]
+
+        def wrapper(id):
+            return Device(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def value(self, id, visibility=None, cardSize=None, name=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -347,12 +502,24 @@ class MutationRoot:
         deviceId_arg = 'deviceId:"%s",' % deviceId
         newEnvironmentId_arg = 'newEnvironmentId:"%s",' % newEnvironmentId
 
-        return self.client.mutation('mutation{moveDevice(%s%s){id}}' % (deviceId_arg, newEnvironmentId_arg))["moveDevice"]
+        res = self.client.mutation('mutation{moveDevice(%s%s){id}}' % (
+            deviceId_arg, newEnvironmentId_arg))["moveDevice"]
+
+        def wrapper(id):
+            return Device(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def resetOnlineState(self, deviceId):
         deviceId_arg = 'deviceId:"%s",' % deviceId
 
-        return self.client.mutation('mutation{resetOnlineState(%s){id}}' % (deviceId_arg))["resetOnlineState"]
+        res = self.client.mutation('mutation{resetOnlineState(%s){id}}' % (deviceId_arg))[
+            "resetOnlineState"]
+
+        def wrapper(id):
+            return Device(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def floatValue(self, id, permission=None, visibility=None, unitOfMeasurement=None, value=None, precision=None, min=None, max=None, name=None, cardSize=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -366,13 +533,25 @@ class MutationRoot:
         name_arg = 'name:"%s",' % name if name is not None else ''
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{floatValue(%s%s%s%s%s%s%s%s%s%s%s){id}}' % (id_arg, permission_arg, visibility_arg, unitOfMeasurement_arg, value_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, index_arg))["floatValue"]
+        res = self.client.mutation('mutation{floatValue(%s%s%s%s%s%s%s%s%s%s%s){id}}' % (
+            id_arg, permission_arg, visibility_arg, unitOfMeasurement_arg, value_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, index_arg))["floatValue"]
+
+        def wrapper(id):
+            return FloatValue(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def atomicUpdateFloat(self, id, incrementBy):
         id_arg = 'id:"%s",' % id
         incrementBy_arg = 'incrementBy:%s,' % incrementBy
 
-        return self.client.mutation('mutation{atomicUpdateFloat(%s%s){id}}' % (id_arg, incrementBy_arg))["atomicUpdateFloat"]
+        res = self.client.mutation('mutation{atomicUpdateFloat(%s%s){id}}' % (
+            id_arg, incrementBy_arg))["atomicUpdateFloat"]
+
+        def wrapper(id):
+            return FloatValue(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def stringValue(self, id, permission=None, visibility=None, value=None, maxChars=None, name=None, cardSize=None, allowedValues=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -384,7 +563,13 @@ class MutationRoot:
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         allowedValues_arg = 'allowedValues:%s,' % allowedValues if allowedValues is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{stringValue(%s%s%s%s%s%s%s%s%s){id}}' % (id_arg, permission_arg, visibility_arg, value_arg, maxChars_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["stringValue"]
+        res = self.client.mutation('mutation{stringValue(%s%s%s%s%s%s%s%s%s){id}}' % (
+            id_arg, permission_arg, visibility_arg, value_arg, maxChars_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["stringValue"]
+
+        def wrapper(id):
+            return StringValue(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def booleanValue(self, id, permission=None, visibility=None, value=None, name=None, cardSize=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -394,9 +579,15 @@ class MutationRoot:
         name_arg = 'name:"%s",' % name if name is not None else ''
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{booleanValue(%s%s%s%s%s%s%s){id}}' % (id_arg, permission_arg, visibility_arg, value_arg, name_arg, cardSize_arg, index_arg))["booleanValue"]
+        res = self.client.mutation('mutation{booleanValue(%s%s%s%s%s%s%s){id}}' % (
+            id_arg, permission_arg, visibility_arg, value_arg, name_arg, cardSize_arg, index_arg))["booleanValue"]
 
-    def plotValue(self, id, visibility=None, unitOfMeasurement=None, precision=None, min=None, max=None, name=None, cardSize=None, threshold=None, index=None):
+        def wrapper(id):
+            return BooleanValue(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def floatSeriesValue(self, id, visibility=None, unitOfMeasurement=None, precision=None, min=None, max=None, name=None, cardSize=None, threshold=None, index=None):
         id_arg = 'id:"%s",' % id
         visibility_arg = 'visibility:%s,' % visibility if visibility is not None else ''
         unitOfMeasurement_arg = 'unitOfMeasurement:"%s",' % unitOfMeasurement if unitOfMeasurement is not None else ''
@@ -407,34 +598,64 @@ class MutationRoot:
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         threshold_arg = 'threshold:%s,' % threshold if threshold is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{plotValue(%s%s%s%s%s%s%s%s%s%s){id}}' % (id_arg, visibility_arg, unitOfMeasurement_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, threshold_arg, index_arg))["plotValue"]
+        res = self.client.mutation('mutation{floatSeriesValue(%s%s%s%s%s%s%s%s%s%s){id}}' % (
+            id_arg, visibility_arg, unitOfMeasurement_arg, precision_arg, min_arg, max_arg, name_arg, cardSize_arg, threshold_arg, index_arg))["floatSeriesValue"]
 
-    def plotNode(self, id, value=None, timestamp=None):
+        def wrapper(id):
+            return FloatSeriesValue(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def floatSeriesNode(self, id, value=None, timestamp=None):
         id_arg = 'id:"%s",' % id
         value_arg = 'value:%s,' % value if value is not None else ''
         timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
-        return self.client.mutation('mutation{plotNode(%s%s%s){id}}' % (id_arg, value_arg, timestamp_arg))["plotNode"]
+        res = self.client.mutation('mutation{floatSeriesNode(%s%s%s){id}}' % (
+            id_arg, value_arg, timestamp_arg))["floatSeriesNode"]
 
-    def categoryPlotValue(self, id, visibility=None, name=None, cardSize=None, allowedValues=None, index=None):
+        def wrapper(id):
+            return FloatSeriesNode(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def categorySeriesValue(self, id, visibility=None, name=None, cardSize=None, allowedValues=None, index=None):
         id_arg = 'id:"%s",' % id
         visibility_arg = 'visibility:%s,' % visibility if visibility is not None else ''
         name_arg = 'name:"%s",' % name if name is not None else ''
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         allowedValues_arg = 'allowedValues:%s,' % allowedValues if allowedValues is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{categoryPlotValue(%s%s%s%s%s%s){id}}' % (id_arg, visibility_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["categoryPlotValue"]
+        res = self.client.mutation('mutation{categorySeriesValue(%s%s%s%s%s%s){id}}' % (
+            id_arg, visibility_arg, name_arg, cardSize_arg, allowedValues_arg, index_arg))["categorySeriesValue"]
 
-    def categoryPlotNode(self, id, value=None, timestamp=None):
+        def wrapper(id):
+            return CategorySeriesValue(self.client, id)
+
+        return wrapWith(res, wrapper)
+
+    def categorySeriesNode(self, id, value=None, timestamp=None):
         id_arg = 'id:"%s",' % id
         value_arg = 'value:"%s",' % value if value is not None else ''
         timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
-        return self.client.mutation('mutation{categoryPlotNode(%s%s%s){id}}' % (id_arg, value_arg, timestamp_arg))["categoryPlotNode"]
+        res = self.client.mutation('mutation{categorySeriesNode(%s%s%s){id}}' % (
+            id_arg, value_arg, timestamp_arg))["categorySeriesNode"]
+
+        def wrapper(id):
+            return CategorySeriesNode(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def notification(self, id, content=None, read=None):
         id_arg = 'id:"%s",' % id
         content_arg = 'content:"%s",' % content if content is not None else ''
         read_arg = 'read:%s,' % read if read is not None else ''
-        return self.client.mutation('mutation{notification(%s%s%s){id}}' % (id_arg, content_arg, read_arg))["notification"]
+        res = self.client.mutation('mutation{notification(%s%s%s){id}}' % (
+            id_arg, content_arg, read_arg))["notification"]
+
+        def wrapper(id):
+            return Notification(self.client, id)
+
+        return wrapWith(res, wrapper)
 
     def deleteNotification(self, id):
         id_arg = 'id:"%s",' % id
@@ -465,12 +686,12 @@ class MutationRoot:
 
         return self.client.mutation('mutation{deleteUser()}' % ())["deleteUser"]
 
-    def deletePlotNode(self, id):
+    def deleteFloatSeriesNode(self, id):
         id_arg = 'id:"%s",' % id
 
-        return self.client.mutation('mutation{deletePlotNode(%s)}' % (id_arg))["deletePlotNode"]
+        return self.client.mutation('mutation{deleteFloatSeriesNode(%s)}' % (id_arg))["deleteFloatSeriesNode"]
 
-    def deleteCategoryPlotNode(self, id):
+    def deleteCategorySeriesNode(self, id):
         id_arg = 'id:"%s",' % id
 
-        return self.client.mutation('mutation{deleteCategoryPlotNode(%s)}' % (id_arg))["deleteCategoryPlotNode"]
+        return self.client.mutation('mutation{deleteCategorySeriesNode(%s)}' % (id_arg))["deleteCategorySeriesNode"]

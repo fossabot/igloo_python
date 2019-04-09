@@ -2,7 +2,7 @@
 from aiodataloader import DataLoader
 
 
-class CategorySeriesValueLoader(DataLoader):
+class CategorySeriesNodeLoader(DataLoader):
     def __init__(self, client, id):
         super().__init__()
         self.client = client
@@ -10,7 +10,7 @@ class CategorySeriesValueLoader(DataLoader):
 
     async def batch_load_fn(self, keys):
         fields = " ".join(set(keys))
-        res = await self.client.query('{categorySeriesValue(id:"%s"){%s}}' % (self._id, fields), keys=["categorySeriesValue"])
+        res = await self.client.query('{categorySeriesNode(id:"%s"){%s}}' % (self._id, fields), keys=["categorySeriesNode"])
 
         # if fetching object the key will be the first part of the field
         # e.g. when fetching device{id} the result is in the device key
@@ -19,11 +19,11 @@ class CategorySeriesValueLoader(DataLoader):
         return resolvedValues
 
 
-class CategorySeriesValue:
+class CategorySeriesNode:
     def __init__(self, client, id):
         self.client = client
         self._id = id
-        self.loader = CategorySeriesValueLoader(client, id)
+        self.loader = CategorySeriesNodeLoader(client, id)
 
     @property
     def id(self):
@@ -34,23 +34,23 @@ class CategorySeriesValue:
         if self.client.asyncio:
             return self.loader.load("timestamp")
         else:
-            return self.client.query('{categorySeriesValue(id:"%s"){timestamp}}' % self._id, keys=[
-                "categorySeriesValue", "timestamp"])
+            return self.client.query('{categorySeriesNode(id:"%s"){timestamp}}' % self._id, keys=[
+                "categorySeriesNode", "timestamp"])
 
     @timestamp.setter
     def timestamp(self, newValue):
         self.client.mutation(
-            'mutation{categorySeriesValue(id:"%s", timestamp:"%s"){id}}' % (self._id, newValue), asyncio=False)
+            'mutation{categorySeriesNode(id:"%s", timestamp:"%s"){id}}' % (self._id, newValue), asyncio=False)
 
     @property
     def value(self):
         if self.client.asyncio:
             return self.loader.load("value")
         else:
-            return self.client.query('{categorySeriesValue(id:"%s"){value}}' % self._id, keys=[
-                "categorySeriesValue", "value"])
+            return self.client.query('{categorySeriesNode(id:"%s"){value}}' % self._id, keys=[
+                "categorySeriesNode", "value"])
 
     @value.setter
     def value(self, newValue):
         self.client.mutation(
-            'mutation{categorySeriesValue(id:"%s", value:"%s"){id}}' % (self._id, newValue), asyncio=False)
+            'mutation{categorySeriesNode(id:"%s", value:"%s"){id}}' % (self._id, newValue), asyncio=False)

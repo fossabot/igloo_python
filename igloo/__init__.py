@@ -5,9 +5,20 @@ import ssl
 import websockets
 import json
 from .models.user import User
+from .models.permanent_token import PermanentToken
+from .models.pending_environment_share import PendingEnvironmentShare
 from .models.environment import Environment
 from .models.device import Device
 from .models.float_value import FloatValue
+from .models.pending_owner_change import PendingOwnerChange
+from .models.notification import Notification
+from .models.boolean_value import BooleanValue
+from .models.string_value import StringValue
+from .models.float_series_value import FloatSeriesValue
+from .models.category_series_value import CategorySeriesValue
+from .models.category_series_node import CategorySeriesNode
+from .models.file_value import FileValue
+from .models.float_series_node import FloatSeriesNode
 from .mutations import MutationRoot
 from .subscriptions import SubscriptionRoot
 from .utils import get_from_dict
