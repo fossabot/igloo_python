@@ -33,6 +33,14 @@ class GraphQLException(Exception):
     pass
 
 
+def exponential_backoff():
+    yield 1
+    yield 5
+
+    while True:
+        yield 20
+
+
 class Client:
     def __init__(self, token, asyncio=False):
         self.token = token
@@ -106,7 +114,7 @@ class Client:
 
     mutation = query
 
-    async def subscribe(self, query):
+    async def _subscribe(self, query):
         async with websockets.connect(
                 'wss://{}/subscriptions'.format(host), ssl=True, subprotocols=["graphql-ws"]) as websocket:
             await websocket.send('{"type":"connection_init","payload":{"Authorization":"Bearer %s"}}' % (self.token))
@@ -123,8 +131,21 @@ class Client:
                 response = await websocket.recv()
                 parsedResponse = json.loads(response)
                 if parsedResponse["type"] == "data":
-                    print(parsedResponse)
-                    yield parsedResponse["payload"]["data"]
+                    if "errors" in parsedResponse["payload"].keys():
+                        raise GraphQLException(
+                            parsedResponse["payload"]["errors"][0]["message"])
+                    else:
+                        yield parsedResponse["payload"]["data"]
+
+    async def subscribe(self, query):
+        for backoff in exponential_backoff():
+            try:
+                async for res in self._subscribe(query):
+                    yield res
+            except GraphQLException:
+                raise
+            except Exception:
+                await asyncio.sleep(backoff)
 
 
 class QueryRoot:
