@@ -7,13 +7,14 @@ from aiodataloader import DataLoader
 
 
 class UserLoader(DataLoader):
-    def __init__(self, client):
+    def __init__(self, client, id):
         super().__init__()
         self.client = client
+        self._id = id
 
     async def batch_load_fn(self, keys):
         fields = " ".join(set(keys))
-        res = await self.client.query('{user{%s}}' % fields, keys=["user"])
+        res = await self.client.query('{user(id:"%s"){%s}}' % (self._id, fields), keys=["user"])
 
         resolvedValues = [res[key] for key in keys]
 
@@ -23,13 +24,14 @@ class UserLoader(DataLoader):
 class User:
     def __init__(self, client, id=None):
         self.client = client
-        self.loader = UserLoader(client)
 
         if id is None:
             self._id = self.client.query(
                 '{user{id}}', keys=["user", "id"], asyncio=False)
         else:
             self._id = id
+
+        self.loader = UserLoader(client, self._id)
 
     @property
     def id(self):
