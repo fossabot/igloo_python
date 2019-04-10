@@ -21,9 +21,15 @@ class UserLoader(DataLoader):
 
 
 class User:
-    def __init__(self, client):
+    def __init__(self, client, id=None):
         self.client = client
         self.loader = UserLoader(client)
+
+        if id is None:
+            self._id = self.client.query(
+                '{user{id}}', keys=["user", "id"], asyncio=False)
+        else:
+            self._id = id
 
     @property
     def id(self):
@@ -34,26 +40,26 @@ class User:
         if self.client.asyncio:
             return self.loader.load("email")
         else:
-            return self.client.query('{user{email}}', keys=["user", "email"])
+            return self.client.query('{user(id:"%s"){email}}' % self._id, keys=["user", "email"])
 
     @property
     def name(self):
         if self.client.asyncio:
             return self.loader.load("name")
         else:
-            return self.client.query('{user{name}}', keys=["user", "name"])
+            return self.client.query('{user(id:"%s"){name}}' % self._id, keys=["user", "name"])
 
     @name.setter
     def name(self, newName):
         self.client.mutation(
-            'mutation{user(name:"%s"){id}}' % (newName), asyncio=False)
+            'mutation{user(id:"%s")(name:"%s"){id}}' % (self._id, newName), asyncio=False)
 
     @property
     def profileIconColor(self):
         if self.client.asyncio:
             return self.loader.load("profileIconColor")
         else:
-            return self.client.query('{user{profileIconColor}}',
+            return self.client.query('{user(id:"%s"){profileIconColor}}' % self._id,
                                      keys=["user", "profileIconColor"])
 
     @property
@@ -61,32 +67,32 @@ class User:
         if self.client.asyncio:
             return self.loader.load("quietMode")
         else:
-            return self.client.query('{user{quietMode}}', keys=[
+            return self.client.query('{user(id:"%s"){quietMode}}' % self._id, keys=[
                 "user", "quietMode"])
 
     @quietMode.setter
     def quietMode(self, newMode):
         self.client.mutation(
-            'mutation{user(quietMode:%s){id}}' % ("true" if newMode else "false"), asyncio=False)
+            'mutation{user(id:"%s")(quietMode:%s){id}}' % (self._id, "true" if newMode else "false"), asyncio=False)
 
     @property
     def devMode(self):
         if self.client.asyncio:
             return self.loader.load("devMode")
         else:
-            return self.client.query('{user{devMode}}', keys=["user", "devMode"])
+            return self.client.query('{user(id:"%s"){devMode}}' % self._id, keys=["user", "devMode"])
 
     @devMode.setter
     def devMode(self, newMode):
         self.client.mutation(
-            'mutation{user(devMode:%s){id}}' % ("true" if newMode else "false"), asyncio=False)
+            'mutation{user(id:"%s")(devMode:%s){id}}' % (self._id, "true" if newMode else "false"), asyncio=False)
 
     @property
     def emailIsVerified(self):
         if self.client.asyncio:
             return self.loader.load("emailIsVerified")
         else:
-            return self.client.query('{user{emailIsVerified}}', keys=[
+            return self.client.query('{user(id:"%s"){emailIsVerified}}' % self._id, keys=[
                 "user", "emailIsVerified"])
 
     @property
@@ -94,7 +100,7 @@ class User:
         if self.client.asyncio:
             return self.loader.load("primaryAuthenticationMethods")
         else:
-            return self.client.query('{user{primaryAuthenticationMethods}}', keys=[
+            return self.client.query('{user(id:"%s"){primaryAuthenticationMethods}}' % self._id, keys=[
                 "user", "primaryAuthenticationMethods"])
 
     @property
@@ -102,7 +108,7 @@ class User:
         if self.client.asyncio:
             return self.loader.load("secondaryAuthenticationMethods")
         else:
-            return self.client.query('{user{secondaryAuthenticationMethods}}', keys=[
+            return self.client.query('{user(id:"%s"){secondaryAuthenticationMethods}}' % self._id, keys=[
                 "user", "secondaryAuthenticationMethods"])
 
     @property
