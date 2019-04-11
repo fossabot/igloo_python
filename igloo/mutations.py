@@ -20,9 +20,16 @@ async def _asyncWrapWith(res, wrapper_fn):
     return wrapper_fn(result["id"])
 
 
-def wrapWith(res, wrapper_fn):
+def wrapById(res, wrapper_fn):
     if isinstance(res, dict):
         return wrapper_fn(res["id"])
+    else:
+        return _asyncWrapWith(res, wrapper_fn)
+
+
+def wrapWith(res, wrapper_fn):
+    if isinstance(res, dict):
+        return wrapper_fn(res)
     else:
         return _asyncWrapWith(res, wrapper_fn)
 
@@ -100,7 +107,7 @@ class MutationRoot:
         def wrapper(id):
             return PermanentToken(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def regeneratePermanentToken(self, id):
         id_arg = 'id:"%s",' % id
@@ -112,16 +119,37 @@ class MutationRoot:
 
         return self.client.mutation('mutation{deletePermanentToken(%s)}' % (id_arg))["deletePermanentToken"]
 
+    async def _wrapSignUp(self, res):
+        result = await res
+        result["user"] = User(self.client)
+
+        return result
+
     def signUp(self, email, name):
         email_arg = 'email:"%s",' % email
         name_arg = 'name:"%s",' % name
 
-        return self.client.mutation('mutation{signUp(%s%s){id}}' % (email_arg, name_arg))["signUp"]
+        res = self.client.mutation('mutation{signUp(%s%s){user{id} changeAuthenticationToken}}' % (
+            email_arg, name_arg))["signUp"]
+
+        if isinstance(res, dict):
+            res["user"] = User(self.client, res["user"]["id"])
+            return res
+        else:
+            return self._wrapSignUp(res)
 
     def setPassword(self, password):
         password_arg = 'password:"%s",' % password
 
-        return self.client.mutation('mutation{setPassword(%s){id}}' % (password_arg))["setPassword"]
+        res = self.client.mutation(
+            'mutation{setPassword(%s){token user{id}}}' % (password_arg))["setPassword"]
+
+        def wrapper(res):
+            res["user"] = User(self.client, res["user"]["id"])
+
+            return res
+
+        return wrapWith(res, wrapper)
 
     def setTotp(self, code=None, secret=None):
 
@@ -133,7 +161,15 @@ class MutationRoot:
 
         challengeResponse_arg = 'challengeResponse:"%s",' % challengeResponse if challengeResponse is not None else ''
         jwtChallenge_arg = 'jwtChallenge:"%s",' % jwtChallenge if jwtChallenge is not None else ''
-        return self.client.mutation('mutation{setWebAuthn(%s%s){id}}' % (challengeResponse_arg, jwtChallenge_arg))["setWebAuthn"]
+        res = self.client.mutation('mutation{setWebAuthn(%s%s){token user{id}}}' % (
+            challengeResponse_arg, jwtChallenge_arg))["setWebAuthn"]
+
+        def wrapper(res):
+            res["user"] = User(self.client, res["user"]["id"])
+
+            return res
+
+        return wrapWith(res, wrapper)
 
     def changeAuthenticationSettings(self, primaryAuthenticationMethods, secondaryAuthenticationMethods):
         primaryAuthenticationMethods_arg = 'primaryAuthenticationMethods:%s,' % primaryAuthenticationMethods
@@ -145,7 +181,7 @@ class MutationRoot:
         def wrapper(id):
             return User(self.client)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def resendVerificationEmail(self, email):
         email_arg = 'email:"%s",' % email
@@ -163,7 +199,7 @@ class MutationRoot:
         def wrapper(id):
             return PendingEnvironmentShare(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def pendingEnvironmentShare(self, id, role):
         id_arg = 'id:"%s",' % id
@@ -175,7 +211,7 @@ class MutationRoot:
         def wrapper(id):
             return PendingEnvironmentShare(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def revokePendingEnvironmentShare(self, pendingEnvironmentShareId):
         pendingEnvironmentShareId_arg = 'pendingEnvironmentShareId:"%s",' % pendingEnvironmentShareId
@@ -185,11 +221,16 @@ class MutationRoot:
     def acceptPendingEnvironmentShare(self, pendingEnvironmentShareId):
         pendingEnvironmentShareId_arg = 'pendingEnvironmentShareId:"%s",' % pendingEnvironmentShareId
 
-        res = self.client.mutation('mutation{acceptPendingEnvironmentShare(%s){id}}' % (
+        res = self.client.mutation('mutation{acceptPendingEnvironmentShare(%s){sender{id} receiver{id} role environment{id}}}' % (
             pendingEnvironmentShareId_arg))["acceptPendingEnvironmentShare"]
 
-        def wrapper(id):
-            return PendingEnvironmentShare(self.client, id)
+        def wrapper(res):
+            res["sender"] = User(self.client, res["sender"]["id"])
+            res["receiver"] = User(self.client, res["receiver"]["id"])
+            res["environment"] = Environment(
+                self.client, res["environment"]["id"])
+
+            return res
 
         return wrapWith(res, wrapper)
 
@@ -208,7 +249,7 @@ class MutationRoot:
         def wrapper(id):
             return Environment(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def leaveEnvironment(self, environmentId):
         environmentId_arg = 'environmentId:"%s",' % environmentId
@@ -225,7 +266,7 @@ class MutationRoot:
         def wrapper(id):
             return PendingOwnerChange(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def revokePendingOwnerChange(self, pendingOwnerChangeId):
         pendingOwnerChangeId_arg = 'pendingOwnerChangeId:"%s",' % pendingOwnerChangeId
@@ -235,7 +276,18 @@ class MutationRoot:
     def acceptPendingOwnerChange(self, pendingOwnerChangeId):
         pendingOwnerChangeId_arg = 'pendingOwnerChangeId:"%s",' % pendingOwnerChangeId
 
-        return self.client.mutation('mutation{acceptPendingOwnerChange(%s){id}}' % (pendingOwnerChangeId_arg))["acceptPendingOwnerChange"]
+        res = self.client.mutation('mutation{acceptPendingOwnerChange(%s){sender{id} receiver{id} environment{id}}}' % (
+            pendingOwnerChangeId_arg))["acceptPendingOwnerChange"]
+
+        def wrapper(res):
+            res["sender"] = User(self.client, res["sender"]["id"])
+            res["receiver"] = User(self.client, res["receiver"]["id"])
+            res["environment"] = Environment(
+                self.client, res["environment"]["id"])
+
+            return res
+
+        return wrapWith(res, wrapper)
 
     def declinePendingOwnerChange(self, pendingOwnerChangeId):
         pendingOwnerChangeId_arg = 'pendingOwnerChangeId:"%s",' % pendingOwnerChangeId
@@ -253,7 +305,7 @@ class MutationRoot:
         def wrapper(id):
             return Environment(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createEnvironment(self, name, picture=None, index=None, muted=None):
         name_arg = 'name:"%s",' % name
@@ -266,7 +318,7 @@ class MutationRoot:
         def wrapper(id):
             return Environment(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createDevice(self, deviceType=None, firmware=None):
         deviceType_arg = 'deviceType:"%s",' % deviceType if deviceType is not None else ''
@@ -277,7 +329,7 @@ class MutationRoot:
         def wrapper(id):
             return Device(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def claimDevice(self, deviceId, name, environmentId, index=None, muted=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -291,7 +343,7 @@ class MutationRoot:
         def wrapper(id):
             return Device(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createNotification(self, deviceId, content, date=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -303,7 +355,7 @@ class MutationRoot:
         def wrapper(id):
             return Notification(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createFloatValue(self, deviceId, permission, name, visibility=None, unitOfMeasurement=None, value=None, precision=None, min=None, max=None, cardSize=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -323,7 +375,7 @@ class MutationRoot:
         def wrapper(id):
             return FloatValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createStringValue(self, deviceId, permission, name, visibility=None, value=None, maxChars=None, cardSize=None, allowedValues=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -341,7 +393,7 @@ class MutationRoot:
         def wrapper(id):
             return StringValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createBooleanValue(self, deviceId, permission, name, visibility=None, value=None, cardSize=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -357,7 +409,7 @@ class MutationRoot:
         def wrapper(id):
             return BooleanValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createFloatSeriesValue(self, deviceId, name, visibility=None, unitOfMeasurement=None, precision=None, min=None, max=None, cardSize=None, threshold=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -376,7 +428,7 @@ class MutationRoot:
         def wrapper(id):
             return FloatSeriesValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createFloatSeriesNode(self, seriesId, value, timestamp=None):
         seriesId_arg = 'seriesId:"%s",' % seriesId
@@ -388,7 +440,7 @@ class MutationRoot:
         def wrapper(id):
             return FloatSeriesNode(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createCategorySeriesValue(self, deviceId, name, visibility=None, cardSize=None, allowedValues=None, index=None):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -403,7 +455,7 @@ class MutationRoot:
         def wrapper(id):
             return CategorySeriesValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def createCategorySeriesNode(self, seriesId, value, timestamp=None):
         seriesId_arg = 'seriesId:"%s",' % seriesId
@@ -415,7 +467,7 @@ class MutationRoot:
         def wrapper(id):
             return CategorySeriesNode(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def user(self, quietMode=None, devMode=None, paymentPlan=None, name=None, profileIcon=None):
 
@@ -430,7 +482,7 @@ class MutationRoot:
         def wrapper(id):
             return User(self.client)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def changeEmail(self, newEmail):
         newEmail_arg = 'newEmail:"%s",' % newEmail
@@ -450,7 +502,8 @@ class MutationRoot:
         pendingOwnerChangeAcceptedEmail_arg = 'pendingOwnerChangeAcceptedEmail:%s,' % pendingOwnerChangeAcceptedEmail if pendingOwnerChangeAcceptedEmail is not None else ''
         pendingEnvironmentShareAcceptedEmail_arg = 'pendingEnvironmentShareAcceptedEmail:%s,' % pendingEnvironmentShareAcceptedEmail if pendingEnvironmentShareAcceptedEmail is not None else ''
         permanentTokenCreatedEmail_arg = 'permanentTokenCreatedEmail:%s,' % permanentTokenCreatedEmail if permanentTokenCreatedEmail is not None else ''
-        return self.client.mutation('mutation{settings(%s%s%s%s%s%s%s%s%s%s%s){id}}' % (language_arg, lengthAndMass_arg, temperature_arg, dateFormat_arg, timeFormat_arg, passwordChangeEmail_arg, pendingOwnerChangeReceivedEmail_arg, pendingEnvironmentShareReceivedEmail_arg, pendingOwnerChangeAcceptedEmail_arg, pendingEnvironmentShareAcceptedEmail_arg, permanentTokenCreatedEmail_arg))["settings"]
+
+        return self.client.mutation('mutation{settings(%s%s%s%s%s%s%s%s%s%s%s){id lengthAndMass temperature timeFormat dateFormat language passwordChangeEmail pendingOwnerChangeReceivedEmail pendingEnvironmentShareReceivedEmail pendingOwnerChangeAcceptedEmail pendingEnvironmentShareAcceptedEmail permanentTokenCreatedEmail}}' % (language_arg, lengthAndMass_arg, temperature_arg, dateFormat_arg, timeFormat_arg, passwordChangeEmail_arg, pendingOwnerChangeReceivedEmail_arg, pendingEnvironmentShareReceivedEmail_arg, pendingOwnerChangeAcceptedEmail_arg, pendingEnvironmentShareAcceptedEmail_arg, permanentTokenCreatedEmail_arg))["settings"]
 
     def updatePaymentInfo(self, stripeToken):
         stripeToken_arg = 'stripeToken:"%s",' % stripeToken
@@ -469,7 +522,7 @@ class MutationRoot:
         def wrapper(id):
             return Environment(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def device(self, id, deviceType=None, name=None, index=None, signalStatus=None, batteryStatus=None, batteryCharging=None, firmware=None, muted=None, starred=None):
         id_arg = 'id:"%s",' % id
@@ -488,7 +541,7 @@ class MutationRoot:
         def wrapper(id):
             return Device(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def value(self, id, visibility=None, cardSize=None, name=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -496,7 +549,26 @@ class MutationRoot:
         cardSize_arg = 'cardSize:%s,' % cardSize if cardSize is not None else ''
         name_arg = 'name:"%s",' % name if name is not None else ''
         index_arg = 'index:%s,' % index if index is not None else ''
-        return self.client.mutation('mutation{value(%s%s%s%s%s){id}}' % (id_arg, visibility_arg, cardSize_arg, name_arg, index_arg))["value"]
+        res = self.client.mutation('mutation{value(%s%s%s%s%s){id __typename}}' % (
+            id_arg, visibility_arg, cardSize_arg, name_arg, index_arg))["value"]
+
+        def wrapper(res):
+            if res["__typename"] == "FloatValue":
+                return FloatValue(self.client, res["id"])
+            elif res["__typename"] == "StringValue":
+                return StringValue(self.client, res["id"])
+            elif res["__typename"] == "BooleanValue":
+                return BooleanValue(self.client, res["id"])
+            elif res["__typename"] == "FloatSeriesValue":
+                return FloatSeriesValue(self.client, res["id"])
+            elif res["__typename"] == "CategorySeriesValue":
+                return CategorySeriesValue(self.client, res["id"])
+            elif res["__typename"] == "FileValue":
+                return FileValue(self.client, res["id"])
+            else:
+                return res
+
+        return wrapWith(res, wrapper)
 
     def moveDevice(self, deviceId, newEnvironmentId):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -508,7 +580,7 @@ class MutationRoot:
         def wrapper(id):
             return Device(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def resetOnlineState(self, deviceId):
         deviceId_arg = 'deviceId:"%s",' % deviceId
@@ -519,7 +591,7 @@ class MutationRoot:
         def wrapper(id):
             return Device(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def floatValue(self, id, permission=None, visibility=None, unitOfMeasurement=None, value=None, precision=None, min=None, max=None, name=None, cardSize=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -539,7 +611,7 @@ class MutationRoot:
         def wrapper(id):
             return FloatValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def atomicUpdateFloat(self, id, incrementBy):
         id_arg = 'id:"%s",' % id
@@ -551,7 +623,7 @@ class MutationRoot:
         def wrapper(id):
             return FloatValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def stringValue(self, id, permission=None, visibility=None, value=None, maxChars=None, name=None, cardSize=None, allowedValues=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -569,7 +641,7 @@ class MutationRoot:
         def wrapper(id):
             return StringValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def booleanValue(self, id, permission=None, visibility=None, value=None, name=None, cardSize=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -585,7 +657,7 @@ class MutationRoot:
         def wrapper(id):
             return BooleanValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def floatSeriesValue(self, id, visibility=None, unitOfMeasurement=None, precision=None, min=None, max=None, name=None, cardSize=None, threshold=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -604,7 +676,7 @@ class MutationRoot:
         def wrapper(id):
             return FloatSeriesValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def floatSeriesNode(self, id, value=None, timestamp=None):
         id_arg = 'id:"%s",' % id
@@ -616,7 +688,7 @@ class MutationRoot:
         def wrapper(id):
             return FloatSeriesNode(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def categorySeriesValue(self, id, visibility=None, name=None, cardSize=None, allowedValues=None, index=None):
         id_arg = 'id:"%s",' % id
@@ -631,7 +703,7 @@ class MutationRoot:
         def wrapper(id):
             return CategorySeriesValue(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def categorySeriesNode(self, id, value=None, timestamp=None):
         id_arg = 'id:"%s",' % id
@@ -643,7 +715,7 @@ class MutationRoot:
         def wrapper(id):
             return CategorySeriesNode(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def notification(self, id, content=None, read=None):
         id_arg = 'id:"%s",' % id
@@ -655,7 +727,7 @@ class MutationRoot:
         def wrapper(id):
             return Notification(self.client, id)
 
-        return wrapWith(res, wrapper)
+        return wrapById(res, wrapper)
 
     def deleteNotification(self, id):
         id_arg = 'id:"%s",' % id
