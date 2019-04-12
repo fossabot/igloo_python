@@ -33,29 +33,39 @@ def indent(string, n):
     return "\n".join([unit*n + str for str in string.split("\n")])
 
 
-def create_query(mutation):
-    arg_names = [arg["name"] for arg in mutation["args"]]
+def create_query(subscription):
+    arg_names = [arg["name"] for arg in subscription["args"]]
     query_args = ",".join([arg+"_arg" for arg in arg_names])
 
-    returnValue = "{id}" if mutation["type"]["kind"] == "OBJECT" or mutation["type"]["kind"] == "INTERFACE" else ""
-    query = """mutation{%s(%s)%s}""" % (
-        mutation["name"],
-        "%s"*len(mutation["args"]),
+    if subscription["type"]["kind"] == "OBJECT":
+        if subscription["type"]["name"][0] != subscription["type"]["name"].upper()[0]:
+            returnValue = "{%s}" % " ".join([field["name"]
+                                             for field in subscription["type"]["fields"]])
+        else:
+            returnValue = "{id}"
+    elif subscription["type"]["kind"] == "INTERFACE":
+        returnValue = "{id __typename}"
+    else:
+        returnValue = ""
+
+    query = """subscription{%s(%s)%s}""" % (
+        subscription["name"],
+        "%s"*len(subscription["args"]),
         returnValue
     )
 
-    return "'{query}' % ({query_args})".format(query=query, query_args=query_args)
+    return "('{query}' % ({query_args})).replace('()','')".format(query=query, query_args=query_args)
 
 
-def create_handler(mutation):
-    required_args = [arg["name"] for arg in mutation["args"]
+def create_handler(subscription):
+    required_args = [arg["name"] for arg in subscription["args"]
                      if arg["type"]["kind"] == "NON_NULL"]
-    optional_args = [arg["name"] for arg in mutation["args"]
+    optional_args = [arg["name"] for arg in subscription["args"]
                      if arg["type"]["kind"] != "NON_NULL"]
     all_args = [*required_args, *[arg+"=None" for arg in optional_args]]
 
     args_type = {arg["name"]: getTypename(
-        arg["type"]) for arg in mutation["args"]}
+        arg["type"]) for arg in subscription["args"]}
 
     def arg_to_string(arg_name):
         arg_type = args_type[arg_name]
@@ -71,25 +81,45 @@ def create_handler(mutation):
         name=arg, arg_string=arg_to_string(arg)) for arg in optional_args])
 
     return """
-    def {name}(self, {func_args_list}):
+    async def {name}(self, {func_args_list}):
 {parsed_required_args}
 {parsed_optional_args}
-        return self.client.mutation({query})["{name}"]
-    """.format(name=mutation["name"],
+
+        async for data in self.client.subscribe({query}):
+            {yieldVal}            
+    """.format(name=subscription["name"],
                parsed_required_args=indent(parsed_required_args, 2),
                parsed_optional_args=indent(parsed_optional_args, 2),
-               query=create_query(mutation),
+               query=create_query(subscription),
                func_args_list=func_args_list,
-               query_args=""
+               query_args="",
+               yieldVal='yield data["{name}"]'.format(name=subscription["name"]) if subscription["type"][
+                   "kind"] == "SCALAR" or subscription["type"]["name"][0] != subscription["type"]["name"].upper()[0] else 'yield %s(self.client, data["{name}"]["id"])'.format(name=subscription["name"]) % subscription["type"]["name"]
                )
 
 
-with open("mutations.py", "w") as f:
+with open("subscriptions.py", "w") as f:
     f.write("""# programmatically generated file
-class MutationRoot:
+from .models.user import User
+from .models.permanent_token import PermanentToken
+from .models.pending_environment_share import PendingEnvironmentShare
+from .models.environment import Environment
+from .models.device import Device
+from .models.float_value import FloatValue
+from .models.pending_owner_change import PendingOwnerChange
+from .models.notification import Notification
+from .models.boolean_value import BooleanValue
+from .models.string_value import StringValue
+from .models.float_series_value import FloatSeriesValue
+from .models.category_series_value import CategorySeriesValue
+from .models.category_series_node import CategorySeriesNode
+from .models.file_value import FileValue
+from .models.float_series_node import FloatSeriesNode
+
+class SubscriptionRoot:
     def __init__(self, client):
         self.client = client
 """)
 
-    for mutation in introspection["mutationType"]["fields"]:
-        f.write(create_handler(mutation))
+    for subscription in introspection["subscriptionType"]["fields"]:
+        f.write(create_handler(subscription))

@@ -24,16 +24,17 @@ async def monitor_humidity():
 
 
 async def keepOnline(client):
-    async for data in client.subscription_root.deviceUpdated():
-        print(data)
+    async for _ in client.subscription_root.keepOnline("39fc078e-a94d-4184-8008-3e97750f5e73"):
+        pass
 
 
 async def main():
-    client = Client(asyncio=True, token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiJlNzYxZmZlMi1lM2Q5LTQ0YjYtYjYyZC00M2Y4ZTljMTRjNjIiLCJ0b2tlbklkIjoiMGQxNTcxNGEtM2UyZS00NjFhLTg2ZTMtOGQwZWUwMTY4NWEzIiwiYWNjZXNzTGV2ZWwiOiJERVZJQ0UiLCJ0b2tlblR5cGUiOiJQRVJNQU5FTlQifQ.ttiW6TVvcKoWmhDSL8fTqq_ItWvPa_41zolI4gRi2zwKlUVV-PWRMk3QM1ZcAuEuOtGGLaPuilR-4Z6JZf13ag")
+    client = Client(asyncio=True, token="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiJmODFhODQ3Zi1mZDAyLTQzMDgtOWY3Zi02MTNkZjQ2OTUyNzMiLCJ0b2tlbklkIjoiZjdiZDA1NzMtZTYzMC00ZGIxLTllMTItODE2MDA5NTgyODU4IiwiYWNjZXNzTGV2ZWwiOiJERVZJQ0UiLCJ0b2tlblR5cGUiOiJQRVJNQU5FTlQifQ.VuPRvdMayBg7GxixT4QBjXd3jYO_3Q24Fctx508_p5iRxY96zv0z9-UXQsYGJiJjsI3E7ei2gtgEF84gsm8bnA")
 
-    async for i in client.subscription_root.deviceUpdated():
-        pass
-    # await asyncio.gather(monitor_humidity(), monitor_temperature(), client.subscription_root.keepOnline("229718d6-e4fe-43dd-a2e6-6504a2e9a5f9"))
+    # print(await client.query_root.user.name)
+    # async for device in client.subscription_root.deviceUpdated():
+    #     print("{device} updated".format(device=await device.name))
+    await asyncio.gather(monitor_humidity(), monitor_temperature(), keepOnline(client))
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
