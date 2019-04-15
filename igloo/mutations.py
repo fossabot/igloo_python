@@ -433,7 +433,7 @@ class MutationRoot:
     def createFloatSeriesNode(self, seriesId, value, timestamp=None):
         seriesId_arg = 'seriesId:"%s",' % seriesId
         value_arg = 'value:%s,' % value
-        timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
+        timestamp_arg = 'timestamp:"%s",' % timestamp if timestamp is not None else ''
         res = self.client.mutation('mutation{createFloatSeriesNode(%s%s%s){id}}' % (
             seriesId_arg, timestamp_arg, value_arg))["createFloatSeriesNode"]
 
@@ -460,7 +460,7 @@ class MutationRoot:
     def createCategorySeriesNode(self, seriesId, value, timestamp=None):
         seriesId_arg = 'seriesId:"%s",' % seriesId
         value_arg = 'value:"%s",' % value
-        timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
+        timestamp_arg = 'timestamp:"%s",' % timestamp if timestamp is not None else ''
         res = self.client.mutation('mutation{createCategorySeriesNode(%s%s%s){id}}' % (
             seriesId_arg, timestamp_arg, value_arg))["createCategorySeriesNode"]
 
@@ -681,7 +681,7 @@ class MutationRoot:
     def floatSeriesNode(self, id, value=None, timestamp=None):
         id_arg = 'id:"%s",' % id
         value_arg = 'value:%s,' % value if value is not None else ''
-        timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
+        timestamp_arg = 'timestamp:"%s",' % timestamp if timestamp is not None else ''
         res = self.client.mutation('mutation{floatSeriesNode(%s%s%s){id}}' % (
             id_arg, value_arg, timestamp_arg))["floatSeriesNode"]
 
@@ -708,7 +708,7 @@ class MutationRoot:
     def categorySeriesNode(self, id, value=None, timestamp=None):
         id_arg = 'id:"%s",' % id
         value_arg = 'value:"%s",' % value if value is not None else ''
-        timestamp_arg = 'timestamp:%s,' % timestamp if timestamp is not None else ''
+        timestamp_arg = 'timestamp:"%s",' % timestamp if timestamp is not None else ''
         res = self.client.mutation('mutation{categorySeriesNode(%s%s%s){id}}' % (
             id_arg, value_arg, timestamp_arg))["categorySeriesNode"]
 

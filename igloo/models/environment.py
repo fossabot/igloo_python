@@ -1,4 +1,7 @@
 from .device import EnvironmentDeviceList
+from .user import User
+from .utils import wrapWith
+from .pending_environment_share import EnvironmentPendingEnvironmentShareList
 from aiodataloader import DataLoader
 
 
@@ -12,7 +15,7 @@ class EnvironmentLoader(DataLoader):
         fields = " ".join(set(keys))
         res = await self.client.query('{environment(id:"%s"){%s}}' % (self._id, fields), keys=["environment"])
 
-        resolvedValues = [res[key] for key in keys]
+        resolvedValues = [res[key.split("{")[0]] for key in keys]
 
         return resolvedValues
 
@@ -39,6 +42,21 @@ class Environment:
     def name(self, newName):
         self.client.mutation(
             'mutation{environment(id:"%s", name:"%s"){id}}' % (self._id, newName), asyncio=False)
+
+    @property
+    def owner(self):
+        if self.client.asyncio:
+            res = self.loader.load("owner{id}")
+        else:
+            res = self.client.query('{environment(id:"%s"){owner{id}}}' % self._id, keys=[
+                "environment", "owner"])
+
+        def wrapper(res):
+            res = User(self.client, res["id"])
+
+            return res
+
+        return wrapWith(res, wrapper)
 
     @property
     def myRole(self):
@@ -98,6 +116,10 @@ class Environment:
     @property
     def devices(self):
         return EnvironmentDeviceList(self.client, self._id)
+
+    @property
+    def pendingEnvironmentShares(self):
+        return EnvironmentPendingEnvironmentShareList(self.client, self._id)
 
 
 class EnvironmentList:

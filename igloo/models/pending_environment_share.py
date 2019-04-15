@@ -79,3 +79,47 @@ class UserPendingEnvironmentShareList:
 
     def next(self):
         return self.__next__()
+
+
+class EnvironmentPendingEnvironmentShareList:
+    def __init__(self, client, environmentId):
+        self.client = client
+        self.current = 0
+        self.environmentId = environmentId
+
+    def __len__(self):
+        res = self.client.query('{environment(id:"%s"){pendingEnvironmentShareCount}}' % self.environmentId, keys=[
+                                "environment", "pendingEnvironmentShareCount"])
+        return res
+
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            res = self.client.query(
+                '{environment(id:"%s"){pendingEnvironmentShares(limit:1, offset:%d){id}}}' % (self.environmentId, i))
+            if len(res["environment"]["pendingEnvironmentShares"]) != 1:
+                raise IndexError()
+            return PendingEnvironmentShare(self.client, res["environment"]["pendingEnvironmentShares"][0]["id"])
+        elif isinstance(i, slice):
+            start, end, _ = i.indices(len(self))
+            res = self.client.query(
+                '{environment(id:"%s"){pendingEnvironmentShares(offset:%d, limit:%d){id}}}' % (self.environmentId, start, end-start))
+            return [PendingEnvironmentShare(self.client, pendingShare["id"]) for pendingShare in res["environment"]["pendingEnvironmentShares"]]
+        else:
+            print("i", type(i))
+            raise TypeError("Unexpected type {} passed as index".format(i))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        res = self.client.query(
+            '{environment(id:"%s"){pendingEnvironmentShares(limit:1, offset:%d){id}}}' % (self.environmentId, self.current))
+
+        if len(res["environment"]["pendingEnvironmentShares"]) != 1:
+            raise StopIteration
+
+        self.current += 1
+        return PendingEnvironmentShare(self.client, res["environment"]["pendingEnvironmentShares"][0]["id"])
+
+    def next(self):
+        return self.__next__()
