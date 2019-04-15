@@ -7,3 +7,8 @@
 igloo_python is the official Igloo Python client.
 
 ## Getting started
+TBD
+
+## License
+
+See the [license](https://raw.githubusercontent.com/IglooCloud/igloo_python/master/LICENSE) file for license rights and limitations.
