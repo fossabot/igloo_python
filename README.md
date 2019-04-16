@@ -4,7 +4,7 @@
 
 <h1 align="center">igloo_python</h1>
 
-igloo_python is the official Igloo Python client.
+igloo_python is the official Igloo library for Python.
 
 ## Getting started
 TBD
