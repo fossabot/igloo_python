@@ -1,5 +1,7 @@
 
 from aiodataloader import DataLoader
+from .utils import wrapWith
+from .device import Device
 
 
 class NotificationLoader(DataLoader):
@@ -26,6 +28,19 @@ class Notification:
     @property
     def id(self):
         return self._id
+
+    @property
+    def device(self):
+        if self.client.asyncio:
+            res = self.loader.load("device{id}")
+        else:
+            res = self.client.query('{notification(id:"%s"){device{id}}}' % self._id, keys=[
+                "notification", "device"])
+
+        def wrapper(res):
+            return Device(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
 
     @property
     def content(self):

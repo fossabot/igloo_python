@@ -1,5 +1,8 @@
 
 from aiodataloader import DataLoader
+from .utils import wrapWith
+from .user import User
+from .environment import Environment
 
 
 class PendingEnvironmentShareLoader(DataLoader):
@@ -36,6 +39,45 @@ class PendingEnvironmentShare:
         else:
             return self.client.query('{pendingEnvironmentShare(id:"%s"){role}}' % self._id, keys=[
                 "pendingEnvironmentShare", "role"])
+
+    @property
+    def sender(self):
+        if self.client.asyncio:
+            res = self.loader.load("sender{id}")
+        else:
+            res = self.client.query('{pendingEnvironmentShare(id:"%s"){sender{id}}}' % self._id, keys=[
+                "pendingEnvironmentShare", "sender"])
+
+        def wrapper(res):
+            return User(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
+
+    @property
+    def receiver(self):
+        if self.client.asyncio:
+            res = self.loader.load("receiver{id}")
+        else:
+            res = self.client.query('{pendingEnvironmentShare(id:"%s"){receiver{id}}}' % self._id, keys=[
+                "pendingEnvironmentShare", "receiver"])
+
+        def wrapper(res):
+            return User(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
+
+    @property
+    def environment(self):
+        if self.client.asyncio:
+            res = self.loader.load("environment{id}")
+        else:
+            res = self.client.query('{pendingEnvironmentShare(id:"%s"){environment{id}}}' % self._id, keys=[
+                "pendingEnvironmentShare", "environment"])
+
+        def wrapper(res):
+            return Environment(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
 
 
 class UserPendingEnvironmentShareList:

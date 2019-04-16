@@ -1,6 +1,8 @@
 
 from aiodataloader import DataLoader
 from .device import Device
+from .utils import wrapWith
+from .float_series_node import FloatSeriesNode, FloatSeriesNodeList
 
 
 class FloatSeriesValueLoader(DataLoader):
@@ -29,6 +31,23 @@ class FloatSeriesValue:
     @property
     def id(self):
         return self._id
+
+    @property
+    def lastNode(self):
+        if self.client.asyncio:
+            res = self.loader.load("lastNode{id}")
+        else:
+            res = self.client.query('{floatSeriesValue(id:"%s"){lastNode{id}}}' % self._id, keys=[
+                "floatSeriesValue", "lastNode"])
+
+        def wrapper(res):
+            return FloatSeriesNode(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
+
+    @property
+    def nodes(self):
+        return FloatSeriesNodeList(self.client, self._id)
 
     @property
     def name(self):

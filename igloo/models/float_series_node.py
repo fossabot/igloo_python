@@ -54,3 +54,47 @@ class FloatSeriesNode:
     def value(self, newValue):
         self.client.mutation(
             'mutation{floatSeriesNode(id:"%s", value:%s){id}}' % (self._id, newValue), asyncio=False)
+
+
+class FloatSeriesNodeList:
+    def __init__(self, client, seriesId):
+        self.client = client
+        self.seriesId = seriesId
+        self.current = 0
+
+    def __len__(self):
+        res = self.client.query(
+            '{floatSeriesValue(id:"%s"){nodeCount}}' % self.seriesId)
+        return res["floatSeriesValue"]["nodeCount"]
+
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            res = self.client.query(
+                '{floatSeriesValue(id:"%s"){nodes(limit:1, offset:%d){id}}}' % (self.seriesId, i))
+            if len(res["floatSeriesValue"]["nodes"]) != 1:
+                raise IndexError()
+            return FloatSeriesNode(self.client, res["floatSeriesValue"]["nodes"][0]["id"])
+        elif isinstance(i, slice):
+            start, end, _ = i.indices(len(self))
+            res = self.client.query(
+                '{floatSeriesValue(id:"%s"){nodes(offset:%d, limit:%d){id}}}' % (self.seriesId, start, end-start))
+            return [FloatSeriesNode(self.client, node["id"]) for node in res["floatSeriesValue"]["nodes"]]
+        else:
+            print("i", type(i))
+            raise TypeError("Unexpected type {} passed as index".format(i))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        res = self.client.query(
+            '{floatSeriesValue(id:"%s"){nodes(limit:1, offset:%d){id}}}' % (self.seriesId, self.current))
+
+        if len(res["floatSeriesValue", "nodes"]) != 1:
+            raise StopIteration
+
+        self.current += 1
+        return FloatSeriesNode(self.client, res["floatSeriesValue"]["nodes"][0]["id"])
+
+    def next(self):
+        return self.__next__()

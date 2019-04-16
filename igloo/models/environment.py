@@ -2,6 +2,7 @@ from .device import EnvironmentDeviceList
 from .user import User
 from .utils import wrapWith
 from .pending_environment_share import EnvironmentPendingEnvironmentShareList
+from .pending_owner_change import EnvironmentPendingOwnerChangeList
 from aiodataloader import DataLoader
 
 
@@ -120,6 +121,10 @@ class Environment:
     @property
     def pendingEnvironmentShares(self):
         return EnvironmentPendingEnvironmentShareList(self.client, self._id)
+
+    @property
+    def pendingOwnerChanges(self):
+        return EnvironmentPendingOwnerChangeList(self.client, self._id)
 
 
 class EnvironmentList:

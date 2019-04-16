@@ -54,3 +54,47 @@ class CategorySeriesNode:
     def value(self, newValue):
         self.client.mutation(
             'mutation{categorySeriesNode(id:"%s", value:"%s"){id}}' % (self._id, newValue), asyncio=False)
+
+
+class CategorySeriesNodeList:
+    def __init__(self, client, seriesId):
+        self.client = client
+        self.seriesId = seriesId
+        self.current = 0
+
+    def __len__(self):
+        res = self.client.query(
+            '{categorySeriesValue(id:"%s"){nodeCount}}' % self.seriesId)
+        return res["categorySeriesValue"]["nodeCount"]
+
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            res = self.client.query(
+                '{categorySeriesValue(id:"%s"){nodes(limit:1, offset:%d){id}}}' % (self.seriesId, i))
+            if len(res["categorySeriesValue"]["nodes"]) != 1:
+                raise IndexError()
+            return CategorySeriesNode(self.client, res["categorySeriesValue"]["nodes"][0]["id"])
+        elif isinstance(i, slice):
+            start, end, _ = i.indices(len(self))
+            res = self.client.query(
+                '{categorySeriesValue(id:"%s"){nodes(offset:%d, limit:%d){id}}}' % (self.seriesId, start, end-start))
+            return [CategorySeriesNode(self.client, node["id"]) for node in res["categorySeriesValue"]["nodes"]]
+        else:
+            print("i", type(i))
+            raise TypeError("Unexpected type {} passed as index".format(i))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        res = self.client.query(
+            '{categorySeriesValue(id:"%s"){nodes(limit:1, offset:%d){id}}}' % (self.seriesId, self.current))
+
+        if len(res["categorySeriesValue", "nodes"]) != 1:
+            raise StopIteration
+
+        self.current += 1
+        return CategorySeriesNode(self.client, res["categorySeriesValue"]["nodes"][0]["id"])
+
+    def next(self):
+        return self.__next__()
