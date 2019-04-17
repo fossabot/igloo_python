@@ -1,7 +1,5 @@
-
 from aiodataloader import DataLoader
 from .utils import wrapWith
-from .device import Device
 
 
 class NotificationLoader(DataLoader):
@@ -38,6 +36,7 @@ class Notification:
                 "notification", "device"])
 
         def wrapper(res):
+            from .device import Device
             return Device(self.client, res["id"])
 
         return wrapWith(res, wrapper)

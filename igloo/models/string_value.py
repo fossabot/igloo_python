@@ -1,6 +1,5 @@
 
 from aiodataloader import DataLoader
-from .device import Device
 
 
 class StringValueLoader(DataLoader):
@@ -108,6 +107,8 @@ class StringValue:
 
     async def _async_load_device(self):
         id = await self.loader.load("device{id}")["id"]
+
+        from .device import Device
         return Device(self.client, id)
 
     @property
@@ -118,6 +119,7 @@ class StringValue:
             id = self.client.query('{stringValue(id:"%s"){device{id}}}' % self._id, keys=[
                 "stringValue", "device", "id"])
 
+            from .device import Device
             return Device(self.client, id)
 
     @property

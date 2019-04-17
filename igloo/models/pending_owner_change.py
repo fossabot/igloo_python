@@ -1,8 +1,6 @@
 
 from aiodataloader import DataLoader
 from .utils import wrapWith
-from .user import User
-from .environment import Environment
 
 
 class PendingOwnerChangeLoader(DataLoader):
@@ -41,6 +39,7 @@ class PendingOwnerChange:
                 "pendingOwnerChange", "sender"])
 
         def wrapper(res):
+            from .user import User
             return User(self.client, res["id"])
 
         return wrapWith(res, wrapper)
@@ -54,6 +53,7 @@ class PendingOwnerChange:
                 "pendingOwnerChange", "receiver"])
 
         def wrapper(res):
+            from .user import User
             return User(self.client, res["id"])
 
         return wrapWith(res, wrapper)
@@ -67,6 +67,7 @@ class PendingOwnerChange:
                 "pendingOwnerChange", "environment"])
 
         def wrapper(res):
+            from .environment import Environment
             return Environment(self.client, res["id"])
 
         return wrapWith(res, wrapper)

@@ -1,6 +1,5 @@
 
 from aiodataloader import DataLoader
-from .device import Device
 
 
 class FileValueLoader(DataLoader):
@@ -108,6 +107,8 @@ class FileValue:
 
     async def _async_load_device(self):
         id = await self.loader.load("device{id}")["id"]
+
+        from .device import Device
         return Device(self.client, id)
 
     @property

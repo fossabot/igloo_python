@@ -1,8 +1,3 @@
-from .environment import EnvironmentList
-from .pending_environment_share import UserPendingEnvironmentShareList
-from .pending_owner_change import UserPendingOwnerChangeList
-from .device import DeveloperDeviceList
-from .permanent_token import PermanentTokenList
 from aiodataloader import DataLoader
 
 
@@ -115,20 +110,25 @@ class User:
 
     @property
     def environments(self):
+        from .environment import EnvironmentList
         return EnvironmentList(self.client)
 
     @property
     def pendingEnvironmentShares(self):
+        from .pending_environment_share import UserPendingEnvironmentShareList
         return UserPendingEnvironmentShareList(self.client)
 
     @property
     def pendingOwnerChanges(self):
+        from .pending_owner_change import UserPendingOwnerChangeList
         return UserPendingOwnerChangeList(self.client)
 
     @property
     def developerDevices(self):
+        from .device import DeveloperDeviceList
         return DeveloperDeviceList(self.client)
 
     @property
     def permanentTokens(self):
+        from .permanent_token import PermanentTokenList
         return PermanentTokenList(self.client)

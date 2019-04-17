@@ -23,6 +23,7 @@ from .mutations import MutationRoot
 from .subscriptions import SubscriptionRoot
 from .utils import get_from_dict
 from aiohttp import ClientSession
+from .query import QueryRoot
 import asyncio
 
 host = "bering.igloo.ooo"
@@ -148,18 +149,3 @@ class Client:
                 if not autoreconnect:
                     raise
                 await asyncio.sleep(backoff)
-
-
-class QueryRoot:
-    def __init__(self, client):
-        self.client = client
-
-    @property
-    def user(self):
-        return User(self.client)
-
-    def environment(self, id):
-        return Environment(self.client, id)
-
-    def device(self, id):
-        return Device(self.client, id)

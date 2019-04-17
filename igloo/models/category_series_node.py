@@ -1,5 +1,6 @@
 
 from aiodataloader import DataLoader
+from .utils import wrapWith
 
 
 class CategorySeriesNodeLoader(DataLoader):
@@ -28,6 +29,34 @@ class CategorySeriesNode:
     @property
     def id(self):
         return self._id
+
+    @property
+    def device(self):
+        if self.client.asyncio:
+            res = self.loader.load("device{id}")
+        else:
+            res = self.client.query('{categorySeriesValue(id:"%s"){device{id}}}' % self._id, keys=[
+                "categorySeriesValue", "device"])
+
+        def wrapper(res):
+            from .device import Device
+            return Device(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
+
+    @property
+    def series(self):
+        if self.client.asyncio:
+            res = self.loader.load("series{id}")
+        else:
+            res = self.client.query('{categorySeriesValue(id:"%s"){series{id}}}' % self._id, keys=[
+                "categorySeriesValue", "series"])
+
+        def wrapper(res):
+            from .category_series_value import CategorySeriesValue
+            return CategorySeriesValue(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
 
     @property
     def timestamp(self):

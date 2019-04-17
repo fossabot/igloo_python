@@ -1,6 +1,5 @@
 
 from aiodataloader import DataLoader
-from .device import Device
 
 
 class FloatValueLoader(DataLoader):
@@ -108,6 +107,8 @@ class FloatValue:
 
     async def _async_load_device(self):
         id = await self.loader.load("device{id}")["id"]
+
+        from .device import Device
         return Device(self.client, id)
 
     @property
@@ -118,6 +119,7 @@ class FloatValue:
             id = self.client.query('{floatValue(id:"%s"){device{id}}}' % self._id, keys=[
                 "floatValue", "device", "id"])
 
+            from .device import Device
             return Device(self.client, id)
 
     @property

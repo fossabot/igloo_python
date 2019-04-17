@@ -1,5 +1,6 @@
 
 from aiodataloader import DataLoader
+from .utils import wrapWith
 
 
 class PermanentTokenLoader(DataLoader):
@@ -28,6 +29,21 @@ class PermanentToken:
     @property
     def id(self):
         return self._id
+
+    @property
+    def user(self):
+        if self.client.asyncio:
+            res = self.loader.load("user{id}")
+        else:
+            res = self.client.query('{permanentToken(id:"%s"){user{id}}}' % self._id, keys=[
+                "permanentToken", "user"])
+
+        from .user import User
+
+        def wrapper(res):
+            return User(self.client, res["id"])
+
+        return wrapWith(res, wrapper)
 
     @property
     def name(self):

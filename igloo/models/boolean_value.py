@@ -1,6 +1,5 @@
 
 from aiodataloader import DataLoader
-from .device import Device
 
 
 class BooleanValueLoader(DataLoader):
@@ -108,6 +107,7 @@ class BooleanValue:
 
     async def _async_load_device(self):
         id = await self.loader.load("device{id}")["id"]
+        from .device import Device
         return Device(self.client, id)
 
     @property
@@ -118,6 +118,7 @@ class BooleanValue:
             id = self.client.query('{booleanValue(id:"%s"){device{id}}}' % self._id, keys=[
                 "booleanValue", "device", "id"])
 
+            from .device import Device
             return Device(self.client, id)
 
     @property

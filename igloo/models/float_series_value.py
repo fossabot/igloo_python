@@ -1,8 +1,6 @@
 
 from aiodataloader import DataLoader
-from .device import Device
 from .utils import wrapWith
-from .float_series_node import FloatSeriesNode, FloatSeriesNodeList
 
 
 class FloatSeriesValueLoader(DataLoader):
@@ -41,12 +39,14 @@ class FloatSeriesValue:
                 "floatSeriesValue", "lastNode"])
 
         def wrapper(res):
+            from .float_series_node import FloatSeriesNode
             return FloatSeriesNode(self.client, res["id"])
 
         return wrapWith(res, wrapper)
 
     @property
     def nodes(self):
+        from .float_series_node import FloatSeriesNodeList
         return FloatSeriesNodeList(self.client, self._id)
 
     @property
@@ -127,6 +127,7 @@ class FloatSeriesValue:
 
     async def _async_load_device(self):
         id = await self.loader.load("device{id}")["id"]
+        from .device import Device
         return Device(self.client, id)
 
     @property
@@ -137,6 +138,7 @@ class FloatSeriesValue:
             id = self.client.query('{floatSeriesValue(id:"%s"){device{id}}}' % self._id, keys=[
                 "floatSeriesValue", "device", "id"])
 
+            from .device import Device
             return Device(self.client, id)
 
     @property

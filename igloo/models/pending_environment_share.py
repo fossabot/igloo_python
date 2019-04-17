@@ -1,8 +1,5 @@
-
 from aiodataloader import DataLoader
 from .utils import wrapWith
-from .user import User
-from .environment import Environment
 
 
 class PendingEnvironmentShareLoader(DataLoader):
@@ -49,6 +46,7 @@ class PendingEnvironmentShare:
                 "pendingEnvironmentShare", "sender"])
 
         def wrapper(res):
+            from .user import User
             return User(self.client, res["id"])
 
         return wrapWith(res, wrapper)
@@ -62,6 +60,7 @@ class PendingEnvironmentShare:
                 "pendingEnvironmentShare", "receiver"])
 
         def wrapper(res):
+            from .user import User
             return User(self.client, res["id"])
 
         return wrapWith(res, wrapper)
@@ -75,6 +74,7 @@ class PendingEnvironmentShare:
                 "pendingEnvironmentShare", "environment"])
 
         def wrapper(res):
+            from .environment import Environment
             return Environment(self.client, res["id"])
 
         return wrapWith(res, wrapper)

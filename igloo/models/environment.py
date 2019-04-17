@@ -1,8 +1,4 @@
-from .device import EnvironmentDeviceList
-from .user import User
 from .utils import wrapWith
-from .pending_environment_share import EnvironmentPendingEnvironmentShareList
-from .pending_owner_change import EnvironmentPendingOwnerChangeList
 from aiodataloader import DataLoader
 
 
@@ -53,6 +49,7 @@ class Environment:
                 "environment", "owner"])
 
         def wrapper(res):
+            from .user import User
             res = User(self.client, res["id"])
 
             return res
@@ -116,14 +113,17 @@ class Environment:
 
     @property
     def devices(self):
+        from .device import EnvironmentDeviceList
         return EnvironmentDeviceList(self.client, self._id)
 
     @property
     def pendingEnvironmentShares(self):
+        from .pending_environment_share import EnvironmentPendingEnvironmentShareList
         return EnvironmentPendingEnvironmentShareList(self.client, self._id)
 
     @property
     def pendingOwnerChanges(self):
+        from .pending_owner_change import EnvironmentPendingOwnerChangeList
         return EnvironmentPendingOwnerChangeList(self.client, self._id)
 
 
